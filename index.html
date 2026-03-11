@@ -426,6 +426,86 @@
             display: inline-block;
             margin-right: 4px;
         }
+
+        /* ─── Trade Overlay Styles ─────────────────────────────────────── */
+        .trades-btn {
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--gold);
+            background: rgba(255, 213, 79, 0.08);
+            border: 1px solid rgba(255, 213, 79, 0.25);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .trades-btn:hover {
+            background: rgba(255, 213, 79, 0.15);
+            border-color: var(--gold);
+        }
+
+        .trades-btn.loaded {
+            color: var(--green-bright);
+            border-color: rgba(0, 230, 118, 0.3);
+            background: rgba(0, 230, 118, 0.08);
+        }
+
+        .trades-stats {
+            display: none;
+            align-items: center;
+            padding: 3px 16px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            gap: 20px;
+            font-size: 11px;
+            min-height: 30px;
+            overflow-x: auto;
+        }
+
+        .stat-item {
+            display: flex;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .stat-label { color: var(--text-muted); font-weight: 500; }
+        .stat-value { font-weight: 600; font-variant-numeric: tabular-nums; }
+        .stat-positive { color: var(--green-bright); }
+        .stat-negative { color: var(--red-bright); }
+        .stat-neutral { color: var(--text-primary); }
+
+        .equity-wrapper {
+            height: 0;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border);
+            transition: height 0.3s ease;
+            position: relative;
+        }
+
+        .equity-wrapper.visible {
+            height: 120px;
+        }
+
+        .equity-label {
+            position: absolute;
+            top: 4px;
+            left: 8px;
+            z-index: 5;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: rgba(12, 12, 18, 0.8);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        #equityChart { width: 100%; height: 100%; }
     </style>
 </head>
 <body>
@@ -500,7 +580,15 @@
         </button>
         <div class="toolbar-sep"></div>
         <span class="toolbar-label" id="tickCountLabel">—</span>
+        <div class="toolbar-sep"></div>
+        <button class="trades-btn" id="btnTrades" onclick="document.getElementById('tradesInput').click()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            Load Trades
+        </button>
+        <input type="file" id="tradesInput" accept=".csv" style="display:none" onchange="loadTradesFile(this.files[0])">
     </div>
+
+    <div class="trades-stats" id="tradesStats"></div>
 
     <div class="chart-wrapper">
         <div class="watermark" id="watermark">—</div>
@@ -512,6 +600,11 @@
             <div class="ohlcv-item"><span class="ohlcv-label">Vol</span> <span class="ohlcv-value" id="infoV">—</span></div>
         </div>
         <div id="chart"></div>
+    </div>
+
+    <div class="equity-wrapper" id="equityWrapper">
+        <div class="equity-label">Equity Curve</div>
+        <div id="equityChart"></div>
     </div>
 
     <div class="status-bar">
@@ -536,6 +629,9 @@ let currentTf = localStorage.getItem('tv_timeframe') || '5m';
 let chartType = localStorage.getItem('tv_chartType') || 'candle';
 let fileName = '';
 let totalLastTicks = 0;
+let tradesData = [];    // parsed trades
+let equityChart = null; // equity curve chart
+let equitySeries = null;
 
 const TIMEFRAMES = [
     { key: '1s',  label: '1s',  seconds: 1 },
@@ -988,6 +1084,238 @@ document.addEventListener('keydown', (e) => {
     const m = { '1': '1s', '2': '5s', '3': '30s', '4': '1m', '5': '5m', '6': '15m', '7': '1h', '8': '4h' };
     if (m[e.key] && chart) setTimeframe(m[e.key]);
 });
+
+// ═════════════════════════════════════════════════════════════════════
+// TRADE OVERLAY
+// ═════════════════════════════════════════════════════════════════════
+function loadTradesFile(file) {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const text = e.target.result;
+        const lines = text.split('\n');
+        if (lines.length < 2) return;
+
+        const hdr = lines[0].toLowerCase().replace(/[\r\n]/g, '').split(',');
+        const colMap = {};
+        hdr.forEach((col, i) => {
+            const c = col.trim();
+            if (/date|time|entry.?time|datetime/i.test(c) && !('time' in colMap)) colMap.time = i;
+            if (/side|direction|type|action/i.test(c)) colMap.side = i;
+            if (/^price$|entry.?price/i.test(c)) colMap.price = i;
+            if (/stop.?loss|sl$/i.test(c)) colMap.sl = i;
+            if (/take.?profit|tp$/i.test(c)) colMap.tp = i;
+            if (/exit.?price/i.test(c)) colMap.exitPrice = i;
+            if (/exit.?time/i.test(c)) colMap.exitTime = i;
+            if (/pnl|p&l|profit|result/i.test(c)) colMap.pnl = i;
+        });
+
+        // Fallback positions
+        if (colMap.time === undefined) colMap.time = 0;
+        if (colMap.side === undefined) colMap.side = 1;
+        if (colMap.price === undefined) colMap.price = 2;
+
+        tradesData = [];
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            const cols = line.split(',');
+            if (cols.length < 3) continue;
+
+            const rawTime = cols[colMap.time]?.trim();
+            const side = (cols[colMap.side]?.trim() || '').toUpperCase();
+            const price = parseFloat(cols[colMap.price]);
+            if (!rawTime || isNaN(price)) continue;
+
+            let dt;
+            if (/^\d{9,}$/.test(rawTime)) {
+                dt = new Date(parseInt(rawTime) * (rawTime.length > 10 ? 1 : 1000));
+            } else {
+                dt = new Date(rawTime.replace('T', ' ').replace('Z', ''));
+            }
+            if (isNaN(dt.getTime())) continue;
+
+            const trade = {
+                time: Math.floor(dt.getTime() / 1000),
+                side: side.includes('BUY') || side.includes('LONG') || side === 'B' ? 'BUY' : 'SELL',
+                price: price,
+                sl: colMap.sl !== undefined ? parseFloat(cols[colMap.sl]) : NaN,
+                tp: colMap.tp !== undefined ? parseFloat(cols[colMap.tp]) : NaN,
+                exitPrice: colMap.exitPrice !== undefined ? parseFloat(cols[colMap.exitPrice]) : NaN,
+                pnl: colMap.pnl !== undefined ? parseFloat(cols[colMap.pnl]) : NaN,
+            };
+
+            if (colMap.exitTime !== undefined) {
+                const rawExit = cols[colMap.exitTime]?.trim();
+                if (rawExit) {
+                    let edt;
+                    if (/^\d{9,}$/.test(rawExit)) {
+                        edt = new Date(parseInt(rawExit) * (rawExit.length > 10 ? 1 : 1000));
+                    } else {
+                        edt = new Date(rawExit.replace('T', ' ').replace('Z', ''));
+                    }
+                    if (!isNaN(edt.getTime())) trade.exitTime = Math.floor(edt.getTime() / 1000);
+                }
+            }
+
+            tradesData.push(trade);
+        }
+
+        tradesData.sort((a, b) => a.time - b.time);
+
+        // Update button state
+        const btn = document.getElementById('btnTrades');
+        btn.classList.add('loaded');
+        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> ${tradesData.length} Trades`;
+
+        // Show stats and overlay
+        showTradeStats();
+        overlayTrades();
+        showEquityCurve();
+    };
+    reader.readAsText(file);
+}
+
+function showTradeStats() {
+    if (!tradesData.length) return;
+    const bar = document.getElementById('tradesStats');
+    bar.style.display = 'flex';
+
+    const wins = tradesData.filter(t => !isNaN(t.pnl) && t.pnl > 0).length;
+    const losses = tradesData.filter(t => !isNaN(t.pnl) && t.pnl < 0).length;
+    const breakeven = tradesData.filter(t => !isNaN(t.pnl) && t.pnl === 0).length;
+    const totalWithPnl = tradesData.filter(t => !isNaN(t.pnl));
+    const totalPnl = totalWithPnl.reduce((s, t) => s + t.pnl, 0);
+    const winRate = totalWithPnl.length > 0 ? (wins / totalWithPnl.length * 100).toFixed(1) : '—';
+    const grossWin = totalWithPnl.filter(t => t.pnl > 0).reduce((s, t) => s + t.pnl, 0);
+    const grossLoss = Math.abs(totalWithPnl.filter(t => t.pnl < 0).reduce((s, t) => s + t.pnl, 0));
+    const profitFactor = grossLoss > 0 ? (grossWin / grossLoss).toFixed(2) : '∞';
+    const avgWin = wins > 0 ? (grossWin / wins).toFixed(2) : '—';
+    const avgLoss = losses > 0 ? (grossLoss / losses).toFixed(2) : '—';
+
+    // Max drawdown
+    let peak = 0, maxDD = 0, running = 0;
+    totalWithPnl.forEach(t => {
+        running += t.pnl;
+        if (running > peak) peak = running;
+        const dd = peak - running;
+        if (dd > maxDD) maxDD = dd;
+    });
+
+    const pnlClass = totalPnl >= 0 ? 'stat-positive' : 'stat-negative';
+
+    bar.innerHTML = `
+        <div class="stat-item"><span class="stat-label">Trades</span><span class="stat-value stat-neutral">${tradesData.length}</span></div>
+        <div class="stat-item"><span class="stat-label">Win Rate</span><span class="stat-value ${wins > losses ? 'stat-positive' : 'stat-negative'}">${winRate}%</span></div>
+        <div class="stat-item"><span class="stat-label">W/L</span><span class="stat-value stat-neutral">${wins}/${losses}</span></div>
+        <div class="stat-item"><span class="stat-label">Net P&L</span><span class="stat-value ${pnlClass}">${totalPnl >= 0 ? '+' : ''}${totalPnl.toFixed(2)}</span></div>
+        <div class="stat-item"><span class="stat-label">PF</span><span class="stat-value stat-neutral">${profitFactor}</span></div>
+        <div class="stat-item"><span class="stat-label">Avg Win</span><span class="stat-value stat-positive">+${avgWin}</span></div>
+        <div class="stat-item"><span class="stat-label">Avg Loss</span><span class="stat-value stat-negative">-${avgLoss}</span></div>
+        <div class="stat-item"><span class="stat-label">Max DD</span><span class="stat-value stat-negative">-${maxDD.toFixed(2)}</span></div>
+    `;
+}
+
+function overlayTrades() {
+    if (!candleSeries || !tradesData.length) return;
+
+    // Create markers for entries and exits
+    const markers = [];
+    tradesData.forEach(t => {
+        const isBuy = t.side === 'BUY';
+        markers.push({
+            time: t.time,
+            position: isBuy ? 'belowBar' : 'aboveBar',
+            color: isBuy ? '#00e676' : '#ff5252',
+            shape: isBuy ? 'arrowUp' : 'arrowDown',
+            text: `${isBuy ? 'BUY' : 'SELL'} @ ${t.price.toFixed(2)}`,
+        });
+
+        // Exit marker
+        if (t.exitTime && !isNaN(t.exitPrice)) {
+            const won = !isNaN(t.pnl) ? t.pnl >= 0 : true;
+            markers.push({
+                time: t.exitTime,
+                position: isBuy ? 'aboveBar' : 'belowBar',
+                color: won ? '#00e676' : '#ff5252',
+                shape: 'circle',
+                text: `EXIT ${t.exitPrice.toFixed(2)} ${!isNaN(t.pnl) ? (t.pnl >= 0 ? '+' : '') + t.pnl.toFixed(2) : ''}`,
+            });
+        }
+    });
+
+    // Sort markers by time (required by lightweight-charts)
+    markers.sort((a, b) => a.time - b.time);
+    candleSeries.setMarkers(markers);
+}
+
+function showEquityCurve() {
+    const withPnl = tradesData.filter(t => !isNaN(t.pnl));
+    if (!withPnl.length) return;
+
+    const wrapper = document.getElementById('equityWrapper');
+    wrapper.classList.add('visible');
+
+    const container = document.getElementById('equityChart');
+
+    if (equityChart) { equityChart.remove(); equityChart = null; }
+
+    equityChart = LightweightCharts.createChart(container, {
+        width: container.clientWidth,
+        height: container.clientHeight,
+        layout: {
+            background: { type: 'solid', color: '#0c0c12' },
+            textColor: '#65657e',
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 10,
+        },
+        grid: {
+            vertLines: { color: 'rgba(42, 42, 64, 0.3)' },
+            horzLines: { color: 'rgba(42, 42, 64, 0.3)' },
+        },
+        rightPriceScale: { borderColor: '#2a2a40' },
+        timeScale: { borderColor: '#2a2a40', timeVisible: true, visible: true },
+        crosshair: {
+            vertLine: { color: 'rgba(41, 98, 255, 0.2)', width: 1, style: 2 },
+            horzLine: { color: 'rgba(41, 98, 255, 0.2)', width: 1, style: 2 },
+        },
+    });
+
+    // Build equity data
+    let cumPnl = 0;
+    const equityData = withPnl.map(t => {
+        cumPnl += t.pnl;
+        return { time: t.exitTime || t.time, value: cumPnl };
+    });
+
+    // Area series for equity
+    equitySeries = equityChart.addAreaSeries({
+        lineColor: cumPnl >= 0 ? '#00e676' : '#ff5252',
+        topColor: cumPnl >= 0 ? 'rgba(0, 230, 118, 0.2)' : 'rgba(255, 82, 82, 0.2)',
+        bottomColor: cumPnl >= 0 ? 'rgba(0, 230, 118, 0.02)' : 'rgba(255, 82, 82, 0.02)',
+        lineWidth: 2,
+    });
+    equitySeries.setData(equityData);
+
+    // Zero line
+    equitySeries.createPriceLine({
+        price: 0,
+        color: '#65657e',
+        lineWidth: 1,
+        lineStyle: 2,
+    });
+
+    equityChart.timeScale().fitContent();
+
+    // Sync time scales
+    chart.timeScale().subscribeVisibleTimeRangeChange((range) => {
+        if (equityChart) equityChart.timeScale().setVisibleRange(range);
+    });
+
+    new ResizeObserver(() => {
+        equityChart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
+    }).observe(container);
+}
 </script>
 </body>
 </html>
