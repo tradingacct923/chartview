@@ -528,12 +528,12 @@
 
 <script>
 // ═════════════════════════════════════════════════════════════════════
-// GLOBALS
+// GLOBALS + PERSISTENT SETTINGS
 // ═════════════════════════════════════════════════════════════════════
 let chart, candleSeries, volumeSeries, lineSeries;
 let allCandles = {};
-let currentTf = '5m';
-let chartType = 'candle';
+let currentTf = localStorage.getItem('tv_timeframe') || '5m';
+let chartType = localStorage.getItem('tv_chartType') || 'candle';
 let fileName = '';
 let totalLastTicks = 0;
 
@@ -904,6 +904,7 @@ function createChart() {
 
 function setTimeframe(tf) {
     currentTf = tf;
+    localStorage.setItem('tv_timeframe', tf);
     const candles = allCandles[tf];
     if (!candles || !candles.length) return;
 
@@ -938,6 +939,7 @@ function setTimeframe(tf) {
 
 function setChartType(type) {
     chartType = type;
+    localStorage.setItem('tv_chartType', type);
     document.getElementById('btnCandle').classList.toggle('active', type === 'candle');
     document.getElementById('btnLine').classList.toggle('active', type === 'line');
     setTimeframe(currentTf);
@@ -977,8 +979,8 @@ function resetToUpload() {
     
     if (chart) { chart.remove(); chart = null; }
     allCandles = {};
-    currentTf = '5m';
-    chartType = 'candle';
+    currentTf = localStorage.getItem('tv_timeframe') || '5m';
+    chartType = localStorage.getItem('tv_chartType') || 'candle';
 }
 
 // Keyboard shortcuts
