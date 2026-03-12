@@ -288,8 +288,16 @@
             border-bottom: 1px solid var(--border);
             gap: 4px;
             min-height: 38px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
         }
+
+        .toolbar::-webkit-scrollbar { height: 3px; }
+        .toolbar::-webkit-scrollbar-track { background: transparent; }
+        .toolbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
         .tf-group {
             display: flex;
@@ -461,11 +469,19 @@
             padding: 3px 16px;
             background: var(--bg-tertiary);
             border-bottom: 1px solid var(--border);
-            gap: 20px;
+            gap: 10px;
             font-size: 11px;
             min-height: 30px;
             overflow-x: auto;
+            overflow-y: hidden;
+            flex-wrap: nowrap;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border) transparent;
         }
+
+        .trades-stats::-webkit-scrollbar { height: 3px; }
+        .trades-stats::-webkit-scrollbar-track { background: transparent; }
+        .trades-stats::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
         .stat-item {
             display: flex;
@@ -688,9 +704,538 @@
         }
 
         #rsiChart { width: 100%; height: 100%; }
+
+        /* ─── Validation System ─────────────────────────────────────── */
+        .validation-badge {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            padding: 3px 10px;
+            font-size: 10px;
+            font-weight: 700;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+            border: 1px solid;
+        }
+
+        .validation-badge.visible { display: flex; }
+
+        .validation-badge.has-issues {
+            color: #ffab00;
+            background: rgba(255, 171, 0, 0.1);
+            border-color: rgba(255, 171, 0, 0.3);
+            animation: pulse-warn 2s ease-in-out infinite;
+        }
+
+        .validation-badge.all-clean {
+            color: var(--green-bright);
+            background: rgba(0, 230, 118, 0.08);
+            border-color: rgba(0, 230, 118, 0.25);
+        }
+
+        @keyframes pulse-warn {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255, 171, 0, 0); }
+            50% { box-shadow: 0 0 12px 2px rgba(255, 171, 0, 0.25); }
+        }
+
+        .validation-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 9999;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 80px;
+        }
+
+        .validation-panel.visible {
+            display: flex;
+        }
+
+        .validation-panel-inner {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 600px;
+            max-width: 90vw;
+            max-height: 70vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideDown 0.2s ease;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .validation-panel-inner .validation-list {
+            max-height: 50vh;
+            overflow-y: auto;
+        }
+
+        .validation-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 16px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .validation-header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .validation-header-title {
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .val-count {
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .val-count.critical { background: rgba(255, 82, 82, 0.15); color: #ff5252; }
+        .val-count.warning { background: rgba(255, 171, 0, 0.15); color: #ffab00; }
+        .val-count.suspect { background: rgba(255, 152, 0, 0.15); color: #ff9800; }
+        .val-count.clean { background: rgba(0, 230, 118, 0.1); color: #00e676; }
+
+        .validation-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: inherit;
+        }
+
+        .validation-close:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+        .validation-list {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 4px 0;
+        }
+
+        .validation-list::-webkit-scrollbar { width: 4px; }
+        .validation-list::-webkit-scrollbar-track { background: transparent; }
+        .validation-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        .val-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 5px 16px;
+            font-size: 11px;
+            cursor: pointer;
+            transition: background 0.1s;
+            border-left: 3px solid transparent;
+        }
+
+        .val-row:hover { background: var(--bg-hover); }
+        .val-row.critical { border-left-color: #ff5252; }
+        .val-row.warning { border-left-color: #ffab00; }
+        .val-row.suspect { border-left-color: #ff9800; }
+
+        .val-icon {
+            width: 18px;
+            text-align: center;
+            font-size: 12px;
+            flex-shrink: 0;
+        }
+
+        .val-trade-ref {
+            color: var(--text-secondary);
+            font-weight: 600;
+            min-width: 70px;
+            flex-shrink: 0;
+        }
+
+        .val-message {
+            color: var(--text-primary);
+            flex: 1;
+        }
+
+        .val-detail {
+            color: var(--text-muted);
+            font-size: 10px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .trade-validation-box {
+            margin-top: 8px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 10px;
+        }
+
+        .trade-validation-box.clean {
+            background: rgba(0, 230, 118, 0.08);
+            border: 1px solid rgba(0, 230, 118, 0.2);
+            color: #00e676;
+        }
+
+        .trade-validation-box.flagged {
+            background: rgba(255, 171, 0, 0.08);
+            border: 1px solid rgba(255, 171, 0, 0.2);
+            color: #ffab00;
+        }
+
+        .val-issue-line {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            padding: 2px 0;
+            font-size: 10px;
+        }
+
+        .val-issue-icon { font-size: 10px; }
+
+        /* ─── PnL Calendar (Modal) ─────────────────────────────── */
+        .pnl-cal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 9998;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding-top: 60px;
+        }
+        .pnl-cal-overlay.visible { display: flex; }
+
+        .pnl-cal-modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 680px;
+            max-width: 95vw;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            animation: slideDown 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pnl-cal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .pnl-cal-header button {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 6px;
+            padding: 4px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: inherit;
+        }
+        .pnl-cal-header button:hover { background: var(--bg-hover); }
+        .pnl-cal-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .pnl-cal-close {
+            background: none !important;
+            border: none !important;
+            color: var(--text-muted) !important;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px 8px !important;
+        }
+        .pnl-cal-close:hover { color: var(--text-primary) !important; }
+
+        .pnl-cal-body {
+            padding: 12px 16px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .pnl-cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+        }
+        .pnl-cal-dayname {
+            text-align: center;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding: 4px 0;
+        }
+        .pnl-cal-cell {
+            border-radius: 8px;
+            padding: 6px 4px;
+            min-height: 56px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            font-size: 9px;
+            border: 1px solid transparent;
+            transition: all 0.15s;
+            cursor: default;
+        }
+        .pnl-cal-cell.empty { background: transparent; }
+        .pnl-cal-cell.has-trades { cursor: pointer; }
+        .pnl-cal-cell.has-trades:hover { border-color: var(--accent); transform: scale(1.05); }
+        .pnl-cal-cell .day-num { font-weight: 700; font-size: 12px; color: var(--text-secondary); }
+        .pnl-cal-cell .day-pnl { font-weight: 700; font-size: 11px; }
+        .pnl-cal-cell .day-trades { font-size: 8px; color: var(--text-muted); }
+        .pnl-cal-cell .day-times { font-size: 7px; color: var(--text-muted); margin-top: 1px; }
+        .pnl-cal-cell.win { background: rgba(0, 230, 118, 0.12); }
+        .pnl-cal-cell.win .day-pnl { color: var(--green-bright); }
+        .pnl-cal-cell.loss { background: rgba(255, 82, 82, 0.12); }
+        .pnl-cal-cell.loss .day-pnl { color: var(--red-bright); }
+        .pnl-cal-cell.big-win { background: rgba(0, 230, 118, 0.25); }
+        .pnl-cal-cell.big-loss { background: rgba(255, 82, 82, 0.25); }
+        .pnl-cal-cell.weekend { background: rgba(255,255,255,0.02); }
+        .pnl-cal-cell.selected { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(0, 150, 255, 0.3); }
+
+        .pnl-cal-summary {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: var(--bg-tertiary);
+            border-radius: 8px;
+            font-size: 11px;
+            flex-wrap: wrap;
+        }
+        .pnl-cal-summary .cal-stat {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            white-space: nowrap;
+        }
+        .pnl-cal-summary .cal-stat-label { color: var(--text-muted); }
+        .pnl-cal-summary .cal-stat-val { font-weight: 700; }
+
+        .pnl-cal-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+        .pnl-cal-actions button {
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+        .pnl-cal-actions button:hover { background: var(--bg-hover); }
+        .pnl-cal-actions button.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        /* ─── Format Selector ──────────────────────────────────────── */
+        .format-selector {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        .format-selector label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
+        .format-selector select {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-family: inherit;
+            cursor: pointer;
+            outline: none;
+        }
+        .format-selector select:focus { border-color: var(--accent); }
+
+        /* ─── CSV Preview Modal ───────────────────────────────────────── */
+        .csv-preview-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.65);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .csv-preview-overlay.visible { display: flex; }
+        .csv-preview-modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 780px;
+            max-width: 95vw;
+            max-height: 85vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideDown 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .csv-preview-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+        .csv-preview-header h3 {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+        .csv-preview-body {
+            padding: 16px 18px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .csv-preview-info {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .csv-preview-info .pv-tag {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+        .csv-preview-info .pv-tag b { color: var(--accent); }
+        .csv-preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-bottom: 14px;
+        }
+        .csv-preview-table th {
+            background: var(--bg-tertiary);
+            color: var(--accent);
+            padding: 6px 8px;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        .csv-preview-table td {
+            padding: 5px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            color: var(--text-secondary);
+            white-space: nowrap;
+            max-width: 160px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .csv-preview-table tr:hover td { background: rgba(255,255,255,0.03); }
+        .csv-preview-mapping {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+        .csv-preview-mapping .map-chip {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+        }
+        .map-chip .map-role { color: var(--accent); font-weight: 700; }
+        .map-chip .map-arrow { color: var(--text-muted); }
+        .map-chip .map-col { color: var(--text-secondary); }
+        .map-chip.missing { border-color: #ff5252; }
+        .map-chip.missing .map-role { color: #ff5252; }
+        .csv-preview-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+        .csv-preview-actions button {
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+        }
+        .csv-preview-actions button:hover { background: var(--bg-hover); }
+        .csv-preview-actions button.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
     </style>
 </head>
 <body>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- CSV PREVIEW MODAL                                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="csv-preview-overlay" id="csvPreviewOverlay">
+  <div class="csv-preview-modal">
+    <div class="csv-preview-header">
+        <h3>📋 CSV Preview — Column Detection</h3>
+        <button class="pnl-cal-close" onclick="cancelCsvPreview()">✕</button>
+    </div>
+    <div class="csv-preview-body">
+        <div class="csv-preview-info" id="csvPreviewInfo"></div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;font-weight:600">Detected Column Mapping:</div>
+        <div class="csv-preview-mapping" id="csvPreviewMapping"></div>
+        <table class="csv-preview-table" id="csvPreviewTable"></table>
+        <div class="csv-preview-actions">
+            <button onclick="cancelCsvPreview()">Cancel</button>
+            <button class="primary" onclick="confirmCsvPreview()">✓ Looks Good — Parse</button>
+        </div>
+    </div>
+  </div>
+</div>
 
 <!-- ═══════════════════════════════════════════════════════════════════ -->
 <!-- UPLOAD SCREEN                                                      -->
@@ -713,9 +1258,20 @@
             <input type="file" class="file-input" id="fileInput" accept=".csv">
         </div>
 
+        <div class="format-selector">
+            <label>Data Format (auto-detect):</label>
+            <select id="formatSelect" onchange="updateFormatHint()">
+                <option value="ninjatrader" selected>NinjaTrader</option>
+                <option value="tradingview">TradingView</option>
+                <option value="topstepx">TopStepX</option>
+                <option value="databento">Databento</option>
+                <option value="custom">Custom (auto-detect)</option>
+            </select>
+        </div>
+
         <div class="upload-format">
             Expected format: 
-            <span class="format-tag">DateTime,Type,Price,Bid,Ask,Volume</span>
+            <span class="format-tag" id="formatHint">DateTime,Type,Price,Bid,Ask,Volume</span>
         </div>
 
         <div class="progress-container" id="progressContainer">
@@ -727,7 +1283,10 @@
                 <div class="progress-bar-fill" id="progressFill"></div>
             </div>
             <div class="progress-stats" id="progressStats"></div>
+            <button id="cancelParseBtn" onclick="cancelParse()" style="margin-top:8px;padding:6px 16px;background:rgba(255,82,82,0.12);border:1px solid rgba(255,82,82,0.3);color:#ff5252;border-radius:6px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;display:none">✕ Cancel</button>
         </div>
+
+        <button onclick="loadTestData()" style="margin-top:12px;padding:8px 20px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-secondary);border-radius:6px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:600">🧪 Load Test Data (demo)</button>
     </div>
 </div>
 
@@ -762,6 +1321,13 @@
         </button>
         <div class="toolbar-sep"></div>
         <span class="toolbar-label" id="tickCountLabel">—</span>
+        <div class="toolbar-sep"></div>
+        <span class="toolbar-label">TZ</span>
+        <select id="tzSelect" onchange="setTimezone(this.value)" style="padding:3px 6px;background:var(--bg-secondary);border:1px solid var(--border);color:var(--text-primary);border-radius:4px;font-size:10px;font-family:inherit;cursor:pointer">
+            <option value="local">Local</option>
+            <option value="America/New_York">New York</option>
+            <option value="UTC">UTC</option>
+        </select>
         <div class="toolbar-sep"></div>
         <button class="ind-btn active" id="indEma9" onclick="toggleIndicator('ema9')" title="EMA 9">
             <span class="ind-dot" style="background:#ffd54f"></span>EMA 9
@@ -804,6 +1370,21 @@
 
     <div class="trades-stats" id="tradesStats"></div>
 
+    <div class="validation-panel" id="validationPanel" onclick="if(event.target===this)toggleValidationPanel()">
+      <div class="validation-panel-inner">
+        <div class="validation-header">
+            <div class="validation-header-left">
+                <span class="validation-header-title">⚠ DATA VALIDATION REPORT</span>
+                <span class="val-count critical" id="valCriticalCount"></span>
+                <span class="val-count warning" id="valWarningCount"></span>
+                <span class="val-count clean" id="valCleanCount"></span>
+            </div>
+            <button class="validation-close" onclick="toggleValidationPanel()">✕</button>
+        </div>
+        <div class="validation-list" id="validationList"></div>
+      </div>
+    </div>
+
     <div class="chart-wrapper">
         <div class="watermark" id="watermark">—</div>
         <div class="ohlcv-bar" id="ohlcvBar">
@@ -820,6 +1401,26 @@
     <div class="equity-wrapper" id="equityWrapper">
         <div class="equity-label">Equity Curve</div>
         <div id="equityChart"></div>
+    </div>
+
+    <div class="pnl-cal-overlay" id="pnlCalOverlay" onclick="if(event.target===this)togglePnlCalendar()">
+      <div class="pnl-cal-modal">
+        <div class="pnl-cal-header">
+            <button onclick="navCalMonth(-1)">◀</button>
+            <span class="pnl-cal-title" id="pnlCalTitle">—</span>
+            <div style="display:flex;gap:6px;align-items:center">
+                <button onclick="navCalMonth(1)">▶</button>
+                <button class="pnl-cal-close" onclick="togglePnlCalendar()">✕</button>
+            </div>
+        </div>
+        <div class="pnl-cal-body">
+            <div class="pnl-cal-grid" id="pnlCalGrid"></div>
+            <div class="pnl-cal-summary" id="pnlCalSummary"></div>
+            <div class="pnl-cal-actions">
+                <button onclick="calShowAllDays()">Show All Days</button>
+            </div>
+        </div>
+      </div>
     </div>
 
     <div class="rsi-wrapper" id="rsiWrapper">
@@ -859,6 +1460,80 @@ let equitySeries = null;
 let currentTradeIdx = -1;  // selected trade index
 let tradePriceLines = [];  // active price lines on chart
 let rsiChart = null, rsiSeries = null; // RSI panel
+let tradeZoneRedrawFn = null; // declared early to avoid reference errors
+let equitySyncUnsub = null;   // track equity time-sync subscription
+let rsiSyncUnsub = null;      // track RSI time-sync subscription
+let validationResults = [];   // per-trade validation flags
+let validationSummary = { critical: 0, warning: 0, suspect: 0, clean: 0 };
+let chartTimezone = localStorage.getItem('tv_timezone') || 'local'; // 'local', 'America/New_York', 'UTC'
+
+// ── Timezone formatting helpers ──
+function getTzOption() {
+    return chartTimezone === 'local' ? undefined : chartTimezone;
+}
+
+function formatTzTime(timestamp, opts = {}) {
+    const tz = getTzOption();
+    const d = new Date(timestamp * 1000);
+    const defaults = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+    return d.toLocaleTimeString('en-US', { timeZone: tz, ...defaults, ...opts });
+}
+
+function formatTzDate(timestamp, opts = {}) {
+    const tz = getTzOption();
+    const d = new Date(timestamp * 1000);
+    const defaults = { month: 'short', day: 'numeric', year: 'numeric' };
+    return d.toLocaleDateString('en-US', { timeZone: tz, ...defaults, ...opts });
+}
+
+function formatTzDateTime(timestamp) {
+    const tz = getTzOption();
+    const d = new Date(timestamp * 1000);
+    return d.toLocaleString('en-US', {
+        timeZone: tz, month: 'short', day: 'numeric',
+        hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+    });
+}
+
+function setTimezone(tz) {
+    chartTimezone = tz;
+    localStorage.setItem('tv_timezone', tz);
+    if (chart) {
+        applyTimezoneFormatters();
+        // Re-render to update status bar dates
+        if (allCandles[currentTf] && allCandles[currentTf].length) {
+            setTimeframe(currentTf);
+        }
+    }
+}
+
+function applyTimezoneFormatters() {
+    const tz = getTzOption();
+    chart.applyOptions({
+        localization: {
+            timeFormatter: (timestamp) => {
+                const d = new Date(timestamp * 1000);
+                return d.toLocaleString('en-US', {
+                    timeZone: tz, month: 'short', day: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false,
+                });
+            },
+        },
+        timeScale: {
+            tickMarkFormatter: (time, tickMarkType, locale) => {
+                const d = new Date(time * 1000);
+                if (tickMarkType <= 1) {
+                    return d.toLocaleDateString('en-US', { timeZone: tz, month: 'short', year: 'numeric' });
+                } else if (tickMarkType <= 3) {
+                    return d.toLocaleDateString('en-US', { timeZone: tz, month: 'short', day: 'numeric' });
+                } else {
+                    return d.toLocaleTimeString('en-US', { timeZone: tz, hour: '2-digit', minute: '2-digit', hour12: false });
+                }
+            },
+            borderColor: '#2a2a40', timeVisible: true, secondsVisible: true, rightOffset: 5, barSpacing: 8,
+        },
+    });
+}
 
 // Indicator line series
 let indSeries = {};
@@ -906,6 +1581,52 @@ fileInput.addEventListener('change', (e) => {
     if (file) processFile(file);
 });
 
+async function loadTestData() {
+    try {
+        const resp = await fetch('/test_ticks.csv');
+        if (!resp.ok) { alert('test_ticks.csv not found on server'); return; }
+        const blob = await resp.blob();
+        const file = new File([blob], 'test_ticks.csv', { type: 'text/csv' });
+        processFile(file);
+
+        // After a delay, load sample trades
+        setTimeout(async () => {
+            try {
+                const resp2 = await fetch('/sample_trades.csv');
+                if (!resp2.ok) return;
+                const text = await resp2.text();
+                // Simulate the trade loading
+                const lines = text.trim().split(/\r?\n/);
+                tradesData = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = lines[i].split(',');
+                    if (cols.length < 7) continue;
+                    const trade = {
+                        time: Math.floor(new Date(cols[0].trim()).getTime() / 1000),
+                        side: cols[1].trim().toUpperCase(),
+                        price: parseFloat(cols[2]),
+                        sl: parseFloat(cols[3]),
+                        tp: parseFloat(cols[4]),
+                        exitPrice: parseFloat(cols[5]),
+                        exitTime: Math.floor(new Date(cols[6].trim()).getTime() / 1000),
+                        pnl: parseFloat(cols[7]),
+                    };
+                    tradesData.push(trade);
+                }
+                tradesData.sort((a, b) => a.time - b.time);
+                const btn = document.getElementById('btnTrades');
+                if (btn) { btn.classList.add('loaded'); btn.innerHTML = `\u2714 ${tradesData.length} Trades`; }
+                validateTrades();
+                showTradeStats();
+                overlayTrades();
+                showEquityCurve();
+                showPnlCalendar();
+                showValidationBadge();
+            } catch(e) { console.warn('Trade load failed:', e); }
+        }, 3000);
+    } catch(e) { alert('Failed to load test data: ' + e.message); }
+}
+
 // ═════════════════════════════════════════════════════════════════════
 // CSV PARSING (chunked streaming for large files)
 // ═════════════════════════════════════════════════════════════════════
@@ -913,12 +1634,18 @@ function processFile(file) {
     fileName = file.name.replace('.csv', '').replace(/_ticks$/, '').replace(/_/g, ' ');
     const fileSize = file.size;
 
+    // Validate file type
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+        alert('Please upload a valid CSV file.');
+        return;
+    }
+
     const progressContainer = document.getElementById('progressContainer');
     const progressFill = document.getElementById('progressFill');
     const progressLabel = document.getElementById('progressLabel');
     const progressPct = document.getElementById('progressPct');
     const progressStats = document.getElementById('progressStats');
-    progressContainer.style.display = 'block';
+    const cancelBtn = document.getElementById('cancelParseBtn');
 
     // Initialize candle buckets for all timeframes
     const candleBuckets = {};
@@ -931,11 +1658,173 @@ function processFile(file) {
     let headerSkipped = false;
     let csvFormat = null; // 'tick' or 'ohlcv' — auto-detected from header
     let ohlcvColMap = null; // column index mapping for OHLCV formats
+    let csvDelimiter = ','; // auto-detected delimiter
+    let parseAborted = false; // cancel flag
+
+    // ── Fuzzy header name aliases ──
+    const COL_ALIASES = {
+        time: ['time','date','datetime','timestamp','ts','date/time','trade date','trade_date','date_time','t','period','bar','candle_time','interval'],
+        open: ['open','o','openprice','open_price','open price','first','opening','op'],
+        high: ['high','h','highprice','high_price','high price','hi','max','highest','hp'],
+        low: ['low','l','lowprice','low_price','low price','lo','min','lowest','lp'],
+        close: ['close','c','closeprice','close_price','close price','last','closing','settle','settlement','adj close','adj_close','adjclose','cp'],
+        volume: ['volume','vol','v','qty','quantity','size','total_volume','totalvolume','ticks','contracts','turnover','amount'],
+    };
+
+    function fuzzyMatchCol(headerName) {
+        const h = headerName.trim().toLowerCase().replace(/[^a-z0-9_/ ]/g, '');
+        for (const [role, aliases] of Object.entries(COL_ALIASES)) {
+            if (aliases.includes(h)) return role;
+        }
+        return null;
+    }
+
+    function detectDelimiter(headerLine) {
+        const counts = { ',': 0, '\t': 0, ';': 0, '|': 0 };
+        for (const ch of headerLine) {
+            if (counts[ch] !== undefined) counts[ch]++;
+        }
+        let best = ',', bestCount = 0;
+        for (const [ch, cnt] of Object.entries(counts)) {
+            if (cnt > bestCount) { bestCount = cnt; best = ch; }
+        }
+        return best;
+    }
+
+    function smartParseDate(rawTime) {
+        if (!rawTime) return null;
+        const s = rawTime.trim();
+
+        // Unix timestamp (seconds or milliseconds)
+        if (/^\d{9,}$/.test(s)) {
+            return new Date(parseInt(s) * (s.length > 10 ? 1 : 1000));
+        }
+
+        // ISO 8601: 2025-06-17T10:00:00 or 2025-06-17 10:00:00
+        if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+            return new Date(s.replace('T', ' ').replace('Z', ''));
+        }
+
+        // US format: MM/DD/YYYY or M/D/YYYY (with optional time)
+        const usMatch = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s*(.*)?$/);
+        if (usMatch) {
+            const [, mo, day, yr, time] = usMatch;
+            const timePart = time ? ` ${time}` : '';
+            return new Date(`${yr}-${mo.padStart(2,'0')}-${day.padStart(2,'0')}${timePart}`);
+        }
+
+        // European format: DD.MM.YYYY or DD-MM-YYYY (with optional time)
+        const euMatch = s.match(/^(\d{1,2})[.\-](\d{1,2})[.\-](\d{4})\s*(.*)?$/);
+        if (euMatch) {
+            const [, day, mo, yr, time] = euMatch;
+            const timePart = time ? ` ${time}` : '';
+            return new Date(`${yr}-${mo.padStart(2,'0')}-${day.padStart(2,'0')}${timePart}`);
+        }
+
+        // Slash YYYY/MM/DD
+        const slashMatch = s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})\s*(.*)?$/);
+        if (slashMatch) {
+            const [, yr, mo, day, time] = slashMatch;
+            const timePart = time ? ` ${time}` : '';
+            return new Date(`${yr}-${mo.padStart(2,'0')}-${day.padStart(2,'0')}${timePart}`);
+        }
+
+        // Fallback — let JS try
+        const fallback = new Date(s);
+        return isNaN(fallback.getTime()) ? null : fallback;
+    }
 
     const CHUNK_SIZE = 8 * 1024 * 1024; // 8MB chunks
     let offset = 0;
+    let previewRows = []; // first 5 data rows for preview
+    let rawHeaderCols = []; // original header names
 
+    // ── Cancel support ──
+    window.cancelParse = function() {
+        parseAborted = true;
+        progressLabel.textContent = 'Cancelled';
+        progressPct.textContent = '';
+        progressFill.style.width = '100%';
+        progressFill.style.background = 'linear-gradient(90deg, #ff9800, #ff5252)';
+        cancelBtn.style.display = 'none';
+        setTimeout(() => resetToUpload(), 800);
+    };
+
+    // ═══ STEP 1: Read small preview slice BEFORE full parse ═══
+    const PREVIEW_SIZE = 8192; // 8KB — enough for header + ~5 data rows
+    const previewSlice = file.slice(0, Math.min(PREVIEW_SIZE, fileSize));
+    const previewReader = new FileReader();
+
+    previewReader.onerror = function() {
+        alert('Failed to read file: ' + (previewReader.error?.message || 'Unknown read error'));
+    };
+
+    previewReader.onload = function(e) {
+        const text = e.target.result;
+        const lines = text.split('\n');
+        if (lines.length < 2) {
+            alert('CSV file appears to be empty or has no data rows.');
+            return;
+        }
+
+        // Detect header
+        const hdr = lines[0].replace(/[\r\n]/g, '');
+        csvDelimiter = detectDelimiter(hdr);
+        rawHeaderCols = hdr.split(csvDelimiter).map(c => c.trim());
+        const hdrLower = rawHeaderCols.map(c => c.toLowerCase());
+
+        // Detect format
+        if (hdrLower.includes('type') && hdrLower.some(h => h === 'price' || h === 'bid' || h === 'ask')) {
+            csvFormat = 'tick';
+        } else {
+            csvFormat = 'ohlcv';
+            ohlcvColMap = {};
+            rawHeaderCols.forEach((col, i) => {
+                const role = fuzzyMatchCol(col);
+                if (role && ohlcvColMap[role] === undefined) ohlcvColMap[role] = i;
+            });
+            if (ohlcvColMap.time === undefined) ohlcvColMap.time = 0;
+            if (ohlcvColMap.open === undefined) ohlcvColMap.open = 1;
+            if (ohlcvColMap.high === undefined) ohlcvColMap.high = 2;
+            if (ohlcvColMap.low === undefined) ohlcvColMap.low = 3;
+            if (ohlcvColMap.close === undefined) ohlcvColMap.close = 4;
+            if (ohlcvColMap.volume === undefined) ohlcvColMap.volume = 5;
+        }
+
+        // Collect preview rows
+        for (let i = 1; i < lines.length && previewRows.length < 5; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
+            const cols = line.split(csvDelimiter).map(c => c.trim().replace(/[\r\n]/g, ''));
+            if (cols.length >= 3) previewRows.push(cols);
+        }
+
+        const mapForPreview = csvFormat === 'tick'
+            ? { time: 0, type: 1, price: 2, bid: 3, ask: 4, volume: 5 }
+            : ohlcvColMap;
+
+        // Show preview INSTANTLY — before any heavy parsing
+        showCsvPreview(rawHeaderCols, previewRows, mapForPreview, csvDelimiter, csvFormat, () => {
+            // User confirmed — start full parse
+            progressContainer.style.display = 'block';
+            cancelBtn.style.display = 'inline-block';
+            // Reset state for full parse (header will be re-detected in readNextChunk)
+            headerSkipped = false;
+            leftover = '';
+            offset = 0;
+            totalLines = 0;
+            lastTicks = 0;
+            bytesRead = 0;
+            readNextChunk();
+        });
+    };
+
+    previewReader.readAsText(previewSlice);
+
+    // ═══ STEP 2: Chunked parsing (starts after user confirms preview) ═══
     function readNextChunk() {
+        if (parseAborted) return;
+
         if (offset >= fileSize) {
             finishParsing();
             return;
@@ -944,7 +1833,16 @@ function processFile(file) {
         const slice = file.slice(offset, offset + CHUNK_SIZE);
         const reader = new FileReader();
 
+        reader.onerror = function() {
+            progressLabel.textContent = 'Read error!';
+            progressFill.style.background = 'linear-gradient(90deg, #ef5350, #ff5252)';
+            cancelBtn.style.display = 'none';
+            alert('File read error: ' + (reader.error?.message || 'Unknown error'));
+        };
+
         reader.onload = function(e) {
+            if (parseAborted) return;
+
             const text = leftover + e.target.result;
             const lines = text.split('\n');
 
@@ -954,25 +1852,21 @@ function processFile(file) {
             for (const line of lines) {
                 if (!headerSkipped) {
                     headerSkipped = true;
-                    const hdr = line.toLowerCase().replace(/[\r\n]/g, '');
-                    const hdrCols = hdr.split(',');
+                    // Header already detected in preview — just re-confirm
+                    const hdr = line.replace(/[\r\n]/g, '');
+                    csvDelimiter = detectDelimiter(hdr);
+                    rawHeaderCols = hdr.split(csvDelimiter).map(c => c.trim());
+                    const hdrLower = rawHeaderCols.map(c => c.toLowerCase());
 
-                    // Auto-detect CSV format from header
-                    if (hdr.includes('type') && hdr.includes('price')) {
-                        csvFormat = 'tick'; // NinjaTrader: DateTime,Type,Price,Bid,Ask,Volume
+                    if (hdrLower.includes('type') && hdrLower.some(h => h === 'price' || h === 'bid' || h === 'ask')) {
+                        csvFormat = 'tick';
                     } else {
-                        csvFormat = 'ohlcv'; // TradingView or generic OHLCV
+                        csvFormat = 'ohlcv';
                         ohlcvColMap = {};
-                        hdrCols.forEach((col, i) => {
-                            const c = col.trim().toLowerCase();
-                            if (c === 'time' || c === 'date' || c === 'datetime' || c === 'timestamp') ohlcvColMap.time = i;
-                            if (c === 'open') ohlcvColMap.open = i;
-                            if (c === 'high') ohlcvColMap.high = i;
-                            if (c === 'low') ohlcvColMap.low = i;
-                            if (c === 'close') ohlcvColMap.close = i;
-                            if (c === 'volume' || c === 'vol') ohlcvColMap.volume = i;
+                        rawHeaderCols.forEach((col, i) => {
+                            const role = fuzzyMatchCol(col);
+                            if (role && ohlcvColMap[role] === undefined) ohlcvColMap[role] = i;
                         });
-                        // Fallback column positions if headers not matched
                         if (ohlcvColMap.time === undefined) ohlcvColMap.time = 0;
                         if (ohlcvColMap.open === undefined) ohlcvColMap.open = 1;
                         if (ohlcvColMap.high === undefined) ohlcvColMap.high = 2;
@@ -983,8 +1877,9 @@ function processFile(file) {
                     continue;
                 }
 
-                const cols = line.split(',');
+                const cols = line.split(csvDelimiter);
                 if (cols.length < 3) continue;
+
                 totalLines++;
 
                 if (csvFormat === 'tick') {
@@ -1036,14 +1931,9 @@ function processFile(file) {
                     const volume = ohlcvColMap.volume < cols.length ? (parseInt(cols[ohlcvColMap.volume]) || 0) : 0;
                     if (isNaN(open) || isNaN(close)) continue;
 
-                    // Parse time — handle ISO 8601, unix timestamp, or "YYYY-MM-DD HH:MM"
-                    let dt;
-                    if (/^\d{9,}$/.test(rawTime)) {
-                        dt = new Date(parseInt(rawTime) * (rawTime.length > 10 ? 1 : 1000));
-                    } else {
-                        dt = new Date(rawTime.replace('T', ' ').replace('Z', ''));
-                    }
-                    if (isNaN(dt.getTime())) continue;
+                    // Parse time — smart multi-format detection
+                    const dt = smartParseDate(rawTime);
+                    if (!dt || isNaN(dt.getTime())) continue;
 
                     const ts = Math.floor(dt.getTime() / 1000);
                     const y = dt.getFullYear(), mo = dt.getMonth(), d = dt.getDate();
@@ -1076,7 +1966,7 @@ function processFile(file) {
                 }
             }
 
-            bytesRead = offset + CHUNK_SIZE;
+            bytesRead = Math.min(offset + CHUNK_SIZE, fileSize);
             const pct = Math.min(100, Math.round((bytesRead / fileSize) * 100));
             progressFill.style.width = pct + '%';
             progressPct.textContent = pct + '%';
@@ -1095,34 +1985,73 @@ function processFile(file) {
     function finishParsing() {
         // Process leftover line
         if (leftover.trim()) {
-            const cols = leftover.split(',');
-            if (cols.length >= 6 && cols[1] === 'Last') {
-                const price = parseFloat(cols[2]);
-                const volume = parseInt(cols[5]) || 0;
-                const dtStr = cols[0].substring(0, 19);
-                const [datePart, timePart] = dtStr.split(' ');
-                const [y, mo, d] = datePart.split('-').map(Number);
-                const [h, mi, s] = timePart.split(':').map(Number);
+            const cols = leftover.split(csvDelimiter);
 
-                for (const tf of TIMEFRAMES) {
-                    const totalSec = h * 3600 + mi * 60 + s;
-                    const flooredSec = Math.floor(totalSec / tf.seconds) * tf.seconds;
-                    const fh = Math.floor(flooredSec / 3600);
-                    const fm = Math.floor((flooredSec % 3600) / 60);
-                    const fs = flooredSec % 60;
-                    const flooredDt = new Date(y, mo - 1, d, fh, fm, fs);
-                    const key = Math.floor(flooredDt.getTime() / 1000);
+            if (csvFormat === 'tick') {
+                // NinjaTrader tick leftover
+                if (cols.length >= 6 && cols[1] === 'Last') {
+                    const price = parseFloat(cols[2]);
+                    const volume = parseInt(cols[5]) || 0;
+                    const dtStr = cols[0].substring(0, 19);
+                    const [datePart, timePart] = dtStr.split(' ');
+                    const [y, mo, d] = datePart.split('-').map(Number);
+                    const [h, mi, s] = timePart.split(':').map(Number);
 
-                    if (!candleBuckets[tf.key][key]) {
-                        candleBuckets[tf.key][key] = {
-                            time: key, open: price, high: price, low: price, close: price, volume: volume,
-                        };
-                    } else {
-                        const c = candleBuckets[tf.key][key];
-                        if (price > c.high) c.high = price;
-                        if (price < c.low) c.low = price;
-                        c.close = price;
-                        c.volume += volume;
+                    for (const tf of TIMEFRAMES) {
+                        const totalSec = h * 3600 + mi * 60 + s;
+                        const flooredSec = Math.floor(totalSec / tf.seconds) * tf.seconds;
+                        const fh = Math.floor(flooredSec / 3600);
+                        const fm = Math.floor((flooredSec % 3600) / 60);
+                        const fs = flooredSec % 60;
+                        const flooredDt = new Date(y, mo - 1, d, fh, fm, fs);
+                        const key = Math.floor(flooredDt.getTime() / 1000);
+
+                        if (!candleBuckets[tf.key][key]) {
+                            candleBuckets[tf.key][key] = {
+                                time: key, open: price, high: price, low: price, close: price, volume: volume,
+                            };
+                        } else {
+                            const c = candleBuckets[tf.key][key];
+                            if (price > c.high) c.high = price;
+                            if (price < c.low) c.low = price;
+                            c.close = price;
+                            c.volume += volume;
+                        }
+                    }
+                }
+            } else if (csvFormat === 'ohlcv' && cols.length >= 3) {
+                // OHLCV leftover
+                const rawTime = cols[ohlcvColMap.time]?.trim();
+                const open = parseFloat(cols[ohlcvColMap.open]);
+                const high = parseFloat(cols[ohlcvColMap.high]);
+                const low = parseFloat(cols[ohlcvColMap.low]);
+                const close = parseFloat(cols[ohlcvColMap.close]);
+                const volume = ohlcvColMap.volume < cols.length ? (parseInt(cols[ohlcvColMap.volume]) || 0) : 0;
+                if (!isNaN(open) && !isNaN(close)) {
+                    const dt = smartParseDate(rawTime);
+                    if (dt && !isNaN(dt.getTime())) {
+                        const y = dt.getFullYear(), mo = dt.getMonth(), d = dt.getDate();
+                        const h = dt.getHours(), mi = dt.getMinutes(), s = dt.getSeconds();
+                        for (const tf of TIMEFRAMES) {
+                            const totalSec = h * 3600 + mi * 60 + s;
+                            const flooredSec = Math.floor(totalSec / tf.seconds) * tf.seconds;
+                            const fh = Math.floor(flooredSec / 3600);
+                            const fm = Math.floor((flooredSec % 3600) / 60);
+                            const fs = flooredSec % 60;
+                            const flooredDt = new Date(y, mo, d, fh, fm, fs);
+                            const key = Math.floor(flooredDt.getTime() / 1000);
+                            if (!candleBuckets[tf.key][key]) {
+                                candleBuckets[tf.key][key] = {
+                                    time: key, open, high, low, close, volume,
+                                };
+                            } else {
+                                const c = candleBuckets[tf.key][key];
+                                if (high > c.high) c.high = high;
+                                if (low < c.low) c.low = low;
+                                c.close = close;
+                                c.volume += volume;
+                            }
+                        }
                     }
                 }
             }
@@ -1134,14 +2063,25 @@ function processFile(file) {
             allCandles[tf.key] = Object.values(candleBuckets[tf.key]).sort((a, b) => a.time - b.time);
         });
 
+        // Check if we actually parsed any data
+        const totalCandles = Object.values(allCandles).reduce((sum, arr) => sum + arr.length, 0);
+        if (totalCandles === 0) {
+            progressLabel.textContent = 'Error: No valid data found';
+            progressPct.textContent = '!';
+            progressFill.style.width = '100%';
+            progressFill.style.background = 'linear-gradient(90deg, #ef5350, #ff5252)';
+            progressStats.textContent = 'Check that your CSV has the correct format: DateTime,Type,Price,Bid,Ask,Volume or time,open,high,low,close,Volume';
+            return;
+        }
+
         progressLabel.textContent = 'Done!';
         progressPct.textContent = '100%';
         progressFill.style.width = '100%';
+        cancelBtn.style.display = 'none';
 
         setTimeout(showChart, 300);
     }
 
-    readNextChunk();
 }
 
 // ═════════════════════════════════════════════════════════════════════
@@ -1236,6 +2176,18 @@ function createChart() {
     indSeries.sma50 = chart.addLineSeries({ color: '#ff9800', lineWidth: 1, title: 'SMA 50', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
     indSeries.sma200 = chart.addLineSeries({ color: '#e040fb', lineWidth: 1, title: 'SMA 200', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
     indSeries.vwap = chart.addLineSeries({ color: '#ffffff', lineWidth: 1, lineStyle: 2, title: 'VWAP', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+
+    // Double-click chart → reset auto-scale and fit content (standard TradingView behavior)
+    container.addEventListener('dblclick', () => {
+        chart.priceScale('right').applyOptions({ autoScale: true });
+        chart.timeScale().fitContent();
+    });
+    // Apply timezone formatters
+    applyTimezoneFormatters();
+
+    // Restore saved timezone in dropdown
+    const tzSelect = document.getElementById('tzSelect');
+    if (tzSelect) tzSelect.value = chartTimezone;
 }
 
 function setTimeframe(tf) {
@@ -1416,10 +2368,15 @@ function loadTradesFile(file) {
         btn.classList.add('loaded');
         btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> ${tradesData.length} Trades`;
 
-        // Show stats and overlay
+        // Validate + show stats and overlay
+        validateTrades();
         showTradeStats();
         overlayTrades();
         showEquityCurve();
+        showPnlCalendar();
+
+        // Show validation badge in toolbar
+        showValidationBadge();
     };
     reader.readAsText(file);
 }
@@ -1431,7 +2388,6 @@ function showTradeStats() {
 
     const wins = tradesData.filter(t => !isNaN(t.pnl) && t.pnl > 0).length;
     const losses = tradesData.filter(t => !isNaN(t.pnl) && t.pnl < 0).length;
-    const breakeven = tradesData.filter(t => !isNaN(t.pnl) && t.pnl === 0).length;
     const totalWithPnl = tradesData.filter(t => !isNaN(t.pnl));
     const totalPnl = totalWithPnl.reduce((s, t) => s + t.pnl, 0);
     const winRate = totalWithPnl.length > 0 ? (wins / totalWithPnl.length * 100).toFixed(1) : '—';
@@ -1450,6 +2406,41 @@ function showTradeStats() {
         if (dd > maxDD) maxDD = dd;
     });
 
+    // ── Sharpe Ratio (annualized, assuming ~252 trading days) ──
+    const avgPnl = totalWithPnl.length > 0 ? totalPnl / totalWithPnl.length : 0;
+    const variance = totalWithPnl.length > 1 ? totalWithPnl.reduce((s, t) => s + Math.pow(t.pnl - avgPnl, 2), 0) / (totalWithPnl.length - 1) : 0;
+    const stdDev = Math.sqrt(variance);
+    const sharpe = stdDev > 0 ? ((avgPnl / stdDev) * Math.sqrt(252)).toFixed(2) : '—';
+
+    // ── Expectancy (avg $ per trade) ──
+    const expectancy = totalWithPnl.length > 0 ? (totalPnl / totalWithPnl.length).toFixed(2) : '—';
+
+    // ── Max Consecutive Wins / Losses ──
+    let maxConsecWins = 0, maxConsecLosses = 0, cw = 0, cl = 0;
+    totalWithPnl.forEach(t => {
+        if (t.pnl > 0) { cw++; cl = 0; if (cw > maxConsecWins) maxConsecWins = cw; }
+        else if (t.pnl < 0) { cl++; cw = 0; if (cl > maxConsecLosses) maxConsecLosses = cl; }
+        else { cw = 0; cl = 0; }
+    });
+
+    // ── Average Trade Duration ──
+    const tradesWithDuration = tradesData.filter(t => t.exitTime && t.time);
+    let avgDuration = '—';
+    if (tradesWithDuration.length > 0) {
+        const totalSec = tradesWithDuration.reduce((s, t) => s + (t.exitTime - t.time), 0) / tradesWithDuration.length;
+        if (totalSec < 60) avgDuration = `${Math.round(totalSec)}s`;
+        else if (totalSec < 3600) avgDuration = `${Math.round(totalSec / 60)}m`;
+        else avgDuration = `${(totalSec / 3600).toFixed(1)}h`;
+    }
+
+    // ── Session Breakdown (AM = before 12:00, PM = 12:00+) ──
+    const amTrades = totalWithPnl.filter(t => new Date(t.time * 1000).getHours() < 12);
+    const pmTrades = totalWithPnl.filter(t => new Date(t.time * 1000).getHours() >= 12);
+    const amPnl = amTrades.reduce((s, t) => s + t.pnl, 0);
+    const pmPnl = pmTrades.reduce((s, t) => s + t.pnl, 0);
+    const amWR = amTrades.length > 0 ? (amTrades.filter(t => t.pnl > 0).length / amTrades.length * 100).toFixed(0) : '—';
+    const pmWR = pmTrades.length > 0 ? (pmTrades.filter(t => t.pnl > 0).length / pmTrades.length * 100).toFixed(0) : '—';
+
     const pnlClass = totalPnl >= 0 ? 'stat-positive' : 'stat-negative';
 
     bar.innerHTML = `
@@ -1461,6 +2452,20 @@ function showTradeStats() {
         <div class="stat-item"><span class="stat-label">Avg Win</span><span class="stat-value stat-positive">+${avgWin}</span></div>
         <div class="stat-item"><span class="stat-label">Avg Loss</span><span class="stat-value stat-negative">-${avgLoss}</span></div>
         <div class="stat-item"><span class="stat-label">Max DD</span><span class="stat-value stat-negative">-${maxDD.toFixed(2)}</span></div>
+        <div style="width:1px;height:18px;background:var(--border);margin:0 4px;flex-shrink:0"></div>
+        <div class="stat-item"><span class="stat-label">Sharpe</span><span class="stat-value ${parseFloat(sharpe) > 0 ? 'stat-positive' : 'stat-negative'}">${sharpe}</span></div>
+        <div class="stat-item"><span class="stat-label">Expect</span><span class="stat-value ${parseFloat(expectancy) >= 0 ? 'stat-positive' : 'stat-negative'}">${expectancy}</span></div>
+        <div class="stat-item"><span class="stat-label">Avg Dur</span><span class="stat-value stat-neutral">${avgDuration}</span></div>
+        <div class="stat-item"><span class="stat-label">Streak W</span><span class="stat-value stat-positive">${maxConsecWins}</span></div>
+        <div class="stat-item"><span class="stat-label">Streak L</span><span class="stat-value stat-negative">${maxConsecLosses}</span></div>
+        <div style="width:1px;height:18px;background:var(--border);margin:0 4px;flex-shrink:0"></div>
+        <div class="stat-item"><span class="stat-label">AM</span><span class="stat-value ${amPnl >= 0 ? 'stat-positive' : 'stat-negative'}">${amTrades.length}t ${amPnl >= 0 ? '+' : ''}${amPnl.toFixed(2)} (${amWR}%)</span></div>
+        <div class="stat-item"><span class="stat-label">PM</span><span class="stat-value ${pmPnl >= 0 ? 'stat-positive' : 'stat-negative'}">${pmTrades.length}t ${pmPnl >= 0 ? '+' : ''}${pmPnl.toFixed(2)} (${pmWR}%)</span></div>
+        <div style="width:1px;height:18px;background:var(--border);margin:0 4px;flex-shrink:0"></div>
+        <button class="refresh-btn" onclick="exportValidationReport()" title="Export validation report" style="flex-shrink:0">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Export
+        </button>
     `;
 }
 
@@ -1494,76 +2499,36 @@ function showAllTrades() {
     clearTradeOverlay();
     currentTradeIdx = -1;
 
+    // Reset price scale to auto-scale
+    chart.priceScale('right').applyOptions({ autoScale: true });
+
+    // In "All" view: only show small entry arrows — NO exit markers, NO P&L text, NO SL/TP zones
     const markers = [];
-    tradesData.forEach(t => {
+    tradesData.forEach((t, idx) => {
         const isBuy = t.side === 'BUY';
+        const vr = validationResults[idx];
+        const isFlagged = vr && vr.issues.length > 0;
+        const hasCritical = vr && vr.issues.some(i => i.severity === 'critical');
+
+        let entryColor = isBuy ? '#00e676' : '#ff5252';
+        let markerText = isBuy ? 'B' : 'S';
+        if (isFlagged) {
+            entryColor = hasCritical ? '#ff9800' : '#ffab00';
+            markerText = '⚠';
+        }
+
         markers.push({
             time: t.time,
             position: isBuy ? 'belowBar' : 'aboveBar',
-            color: isBuy ? '#00e676' : '#ff5252',
+            color: entryColor,
             shape: isBuy ? 'arrowUp' : 'arrowDown',
-            text: isBuy ? 'B' : 'S',
+            text: markerText,
         });
-        if (t.exitTime && !isNaN(t.exitPrice)) {
-            markers.push({
-                time: t.exitTime,
-                position: isBuy ? 'aboveBar' : 'belowBar',
-                color: (!isNaN(t.pnl) && t.pnl >= 0) ? '#00e676' : '#ff5252',
-                shape: 'circle',
-                text: !isNaN(t.pnl) ? (t.pnl >= 0 ? '+' : '') + t.pnl.toFixed(2) : '',
-            });
-        }
     });
     markers.sort((a, b) => a.time - b.time);
     candleSeries.setMarkers(markers);
 
-    // Draw shaded zones for ALL trades
-    const chartEl = document.getElementById('chart');
-    function drawAllZones() {
-        chartEl.querySelectorAll('.trade-zone').forEach(el => el.remove());
-        const timeScale = chart.timeScale();
-
-        tradesData.forEach((t, i) => {
-            const entryTime = t.time;
-            const exitTime = t.exitTime || (t.time + 600);
-            const x1 = timeScale.timeToCoordinate(entryTime);
-            const x2 = timeScale.timeToCoordinate(exitTime);
-            if (x1 === null || x2 === null) return;
-
-            const left = Math.min(x1, x2);
-            const width = Math.max(Math.abs(x2 - x1), 20);
-            const yEntry = candleSeries.priceToCoordinate(t.price);
-            if (yEntry === null) return;
-
-            // TP zone
-            if (!isNaN(t.tp)) {
-                const yTp = candleSeries.priceToCoordinate(t.tp);
-                if (yTp !== null) {
-                    const zone = document.createElement('div');
-                    zone.className = 'trade-zone';
-                    const top = Math.min(yEntry, yTp);
-                    zone.style.cssText = `position:absolute;left:${left}px;top:${top}px;width:${width}px;height:${Math.abs(yEntry-yTp)}px;background:rgba(0,230,118,0.10);border:1px solid rgba(0,230,118,0.3);border-radius:2px;pointer-events:none;z-index:3;`;
-                    chartEl.appendChild(zone);
-                }
-            }
-            // SL zone
-            if (!isNaN(t.sl)) {
-                const ySl = candleSeries.priceToCoordinate(t.sl);
-                if (ySl !== null) {
-                    const zone = document.createElement('div');
-                    zone.className = 'trade-zone';
-                    const top = Math.min(yEntry, ySl);
-                    zone.style.cssText = `position:absolute;left:${left}px;top:${top}px;width:${width}px;height:${Math.abs(yEntry-ySl)}px;background:rgba(255,82,82,0.10);border:1px solid rgba(255,82,82,0.3);border-radius:2px;pointer-events:none;z-index:3;`;
-                    chartEl.appendChild(zone);
-                }
-            }
-        });
-    }
-
-    drawAllZones();
-    tradeZoneRedrawFn = drawAllZones;
-    chart.timeScale().subscribeVisibleLogicalRangeChange(drawAllZones);
-
+    // NO SL/TP zones in "All" view — they only show per-trade via ◀▶ navigation
     document.getElementById('tradeInfoBox').classList.remove('visible');
     document.getElementById('tradeNavLabel').textContent = `All ${tradesData.length}`;
 }
@@ -1584,6 +2549,9 @@ function highlightTrade(idx) {
     clearTradeOverlay();
     const t = tradesData[idx];
     if (!t) return;
+
+    // Reset price scale to auto-scale so candles fill the view
+    chart.priceScale('right').applyOptions({ autoScale: true });
 
     currentTradeIdx = idx;
     const isBuy = t.side === 'BUY';
@@ -1614,20 +2582,36 @@ function highlightTrade(idx) {
     }
     candleSeries.setMarkers(markers);
 
-    // ── Entry price line (dashed) ──
-    tradePriceLines.push(candleSeries.createPriceLine({
-        price: t.price,
-        color: '#448aff',
-        lineWidth: 1,
-        lineStyle: 2,
-        axisLabelVisible: true,
-        title: '',
-    }));
+    // ── Entry price line (dashed) — skip if trade price is outside OHLC range ──
+    const vr = validationResults[idx];
+    const priceOutsideOHLC = vr && vr.issues.some(i => i.rule === 'Price Outside OHLC' || i.rule === 'Exit Outside OHLC');
+
+    if (!priceOutsideOHLC) {
+        tradePriceLines.push(candleSeries.createPriceLine({
+            price: t.price,
+            color: '#448aff',
+            lineWidth: 1,
+            lineStyle: 2,
+            axisLabelVisible: true,
+            title: '',
+        }));
+    }
 
     // ── Draw shaded TP/SL zones using HTML overlays ──
+    // Skip if trade price is outside candle OHLC range (would distort the view)
     const chartEl = document.getElementById('chart');
     const entryTime = t.time;
     const exitTime = t.exitTime || (t.time + 1200);
+
+    if (priceOutsideOHLC) {
+        // For out-of-range trades, just scroll to the time — no overlays
+        chart.priceScale('right').applyOptions({ autoScale: true });
+        chart.timeScale().setVisibleRange({
+            from: t.time - 300,
+            to: (t.exitTime || t.time) + 300,
+        });
+        return;
+    }
 
     function drawTradeZones() {
         // Remove old zone divs
@@ -1757,7 +2741,6 @@ function highlightTrade(idx) {
     drawTradeZones();
     tradeZoneRedrawFn = drawTradeZones;
     chart.timeScale().subscribeVisibleLogicalRangeChange(drawTradeZones);
-    chart.subscribeCrosshairMove(() => {}); // triggers reflow
 
     // ── Trade Info Box ──
     const box = document.getElementById('tradeInfoBox');
@@ -1769,6 +2752,35 @@ function highlightTrade(idx) {
     const isWin = pnlVal >= 0;
     const entryTimeStr = new Date(t.time * 1000).toLocaleString();
     const exitTimeStr = t.exitTime ? new Date(t.exitTime * 1000).toLocaleString() : '—';
+
+    // ── Compute MAE/MFE (Max Adverse/Favorable Excursion) ──
+    let mae = '—', mfe = '—';
+    if (t.exitTime && t.time) {
+        const tradeCandles = findCandleRange(t.time, t.exitTime);
+        if (tradeCandles.length > 0) {
+            if (isBuy) {
+                const maxAdverse = Math.max(...tradeCandles.map(c => t.price - c.low));
+                const maxFavorable = Math.max(...tradeCandles.map(c => c.high - t.price));
+                mae = maxAdverse > 0 ? maxAdverse.toFixed(2) : '0.00';
+                mfe = maxFavorable > 0 ? maxFavorable.toFixed(2) : '0.00';
+            } else {
+                const maxAdverse = Math.max(...tradeCandles.map(c => c.high - t.price));
+                const maxFavorable = Math.max(...tradeCandles.map(c => t.price - c.low));
+                mae = maxAdverse > 0 ? maxAdverse.toFixed(2) : '0.00';
+                mfe = maxFavorable > 0 ? maxFavorable.toFixed(2) : '0.00';
+            }
+        }
+    }
+
+    // ── Trade Duration ──
+    let duration = '—';
+    if (t.exitTime && t.time) {
+        const sec = t.exitTime - t.time;
+        if (sec < 0) duration = 'Invalid';
+        else if (sec < 60) duration = `${sec}s`;
+        else if (sec < 3600) duration = `${Math.floor(sec / 60)}m ${sec % 60}s`;
+        else duration = `${Math.floor(sec / 3600)}h ${Math.floor((sec % 3600) / 60)}m`;
+    }
 
     box.innerHTML = `
         <div class="trade-info-header">
@@ -1795,9 +2807,23 @@ function highlightTrade(idx) {
             <span class="trade-info-key">R:R</span>
             <span class="trade-info-val">${rr}</span>
         </div>
+        <div style="height:1px;background:var(--border);margin:6px 0"></div>
+        <div class="trade-info-row">
+            <span class="trade-info-key">⏱ Duration</span>
+            <span class="trade-info-val" style="color: var(--text-secondary);">${duration}</span>
+        </div>
+        <div class="trade-info-row">
+            <span class="trade-info-key">📉 MAE</span>
+            <span class="trade-info-val" style="color: #ff5252;">-${mae} pts</span>
+        </div>
+        <div class="trade-info-row">
+            <span class="trade-info-key">📈 MFE</span>
+            <span class="trade-info-val" style="color: #00e676;">+${mfe} pts</span>
+        </div>
         ${!isNaN(t.pnl) ? `<div class="trade-pnl-box ${isWin ? 'win' : 'loss'}">
             P&L: ${isWin ? '+' : ''}${t.pnl.toFixed(2)} pts
         </div>` : ''}
+        ${getTradeValidationHTML(idx)}
     `;
 
     // Scroll chart to this trade
@@ -1807,7 +2833,7 @@ function highlightTrade(idx) {
     });
 }
 
-let tradeZoneRedrawFn = null;
+// tradeZoneRedrawFn is now declared at the top of the script
 
 function clearTradeOverlay() {
     // Remove price lines
@@ -1883,15 +2909,639 @@ function showEquityCurve() {
 
     equityChart.timeScale().fitContent();
 
-    // Sync time scales
-    chart.timeScale().subscribeVisibleTimeRangeChange((range) => {
+    // Sync time scales — clean up previous subscription first
+    if (equitySyncUnsub) {
+        try { chart.timeScale().unsubscribeVisibleTimeRangeChange(equitySyncUnsub); } catch(e) {}
+    }
+    equitySyncUnsub = (range) => {
         if (equityChart) equityChart.timeScale().setVisibleRange(range);
-    });
+    };
+    chart.timeScale().subscribeVisibleTimeRangeChange(equitySyncUnsub);
 
     new ResizeObserver(() => {
         equityChart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
     }).observe(container);
 }
+
+// ═════════════════════════════════════════════════════════════════════
+// BACKTEST DATA VALIDATION ENGINE
+// ═════════════════════════════════════════════════════════════════════
+function findCandleAtTime(timestamp) {
+    // Find candle in the smallest timeframe (1s) that contains this timestamp
+    const tf = '1s';
+    const candles = allCandles[tf];
+    if (!candles || !candles.length) {
+        // Fallback to largest available timeframe
+        for (const t of [...TIMEFRAMES].reverse()) {
+            if (allCandles[t.key] && allCandles[t.key].length) {
+                return findCandleInArray(allCandles[t.key], timestamp, TIMEFRAMES.find(x => x.key === t.key).seconds);
+            }
+        }
+        return null;
+    }
+    return findCandleInArray(candles, timestamp, 1);
+}
+
+function findCandleInArray(candles, timestamp, tfSeconds) {
+    // Binary search for the candle whose time window contains timestamp
+    let lo = 0, hi = candles.length - 1;
+    let best = null;
+    while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        const c = candles[mid];
+        if (timestamp >= c.time && timestamp < c.time + tfSeconds) return c;
+        if (timestamp >= c.time + tfSeconds) {
+            lo = mid + 1;
+        } else {
+            hi = mid - 1;
+        }
+    }
+    // Check neighbors for nearest match within tolerance
+    for (const idx of [lo - 1, lo, lo + 1]) {
+        if (idx >= 0 && idx < candles.length) {
+            const c = candles[idx];
+            if (Math.abs(timestamp - c.time) <= tfSeconds * 2) {
+                if (!best || Math.abs(timestamp - c.time) < Math.abs(timestamp - best.time)) {
+                    best = c;
+                }
+            }
+        }
+    }
+    return best;
+}
+
+function findCandleRange(startTime, endTime) {
+    // Get ALL candles between two timestamps (for SL/TP validation)
+    // Use current timeframe candles
+    const candles = allCandles[currentTf];
+    if (!candles || !candles.length) return [];
+    
+    const result = [];
+    for (const c of candles) {
+        if (c.time >= startTime && c.time <= endTime) {
+            result.push(c);
+        }
+        if (c.time > endTime) break;
+    }
+    return result;
+}
+
+function validateTrades() {
+    validationResults = [];
+    validationSummary = { critical: 0, warning: 0, suspect: 0, clean: 0 };
+
+    if (!tradesData.length) return;
+
+    // Build a set of seen trades for duplicate detection
+    const seen = new Map();
+
+    tradesData.forEach((trade, idx) => {
+        const issues = [];
+
+        // ── Rule 1: Price Outside OHLC Range ──
+        const entryCandle = findCandleAtTime(trade.time, 60);
+        if (entryCandle) {
+            if (trade.price > entryCandle.high + 0.01 || trade.price < entryCandle.low - 0.01) {
+                issues.push({
+                    severity: 'critical',
+                    rule: 'Price Outside OHLC',
+                    message: `Entry ${trade.price.toFixed(2)} outside candle range [${entryCandle.low.toFixed(2)} – ${entryCandle.high.toFixed(2)}]`,
+                    icon: '🔴',
+                });
+            }
+        }
+
+        // Exit price check
+        if (!isNaN(trade.exitPrice) && trade.exitTime) {
+            const exitCandle = findCandleAtTime(trade.exitTime, 60);
+            if (exitCandle) {
+                if (trade.exitPrice > exitCandle.high + 0.01 || trade.exitPrice < exitCandle.low - 0.01) {
+                    issues.push({
+                        severity: 'critical',
+                        rule: 'Exit Outside OHLC',
+                        message: `Exit ${trade.exitPrice.toFixed(2)} outside candle range [${exitCandle.low.toFixed(2)} – ${exitCandle.high.toFixed(2)}]`,
+                        icon: '🔴',
+                    });
+                }
+            }
+        }
+
+        // ── Rule 2: No Matching Candle ──
+        if (!entryCandle) {
+            issues.push({
+                severity: 'critical',
+                rule: 'No Candle Data',
+                message: `No candle found at entry time ${new Date(trade.time * 1000).toLocaleString()}`,
+                icon: '🔴',
+            });
+        }
+
+        // ── Rule 3: Timestamp Outside Session (weekends) ──
+        const entryDate = new Date(trade.time * 1000);
+        const day = entryDate.getUTCDay();
+        if (day === 0 || day === 6) {
+            // Sunday = 0, Saturday = 6
+            issues.push({
+                severity: 'warning',
+                rule: 'Weekend Trade',
+                message: `Trade on ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][day]} — market typically closed`,
+                icon: '🟡',
+            });
+        }
+
+        // ── Rule 4: Duplicate Trades ──
+        const dupeKey = `${trade.time}|${trade.price}|${trade.side}`;
+        if (seen.has(dupeKey)) {
+            issues.push({
+                severity: 'warning',
+                rule: 'Duplicate Trade',
+                message: `Identical to Trade #${seen.get(dupeKey) + 1} (same time, price, side)`,
+                icon: '🟡',
+            });
+        }
+        seen.set(dupeKey, idx);
+
+        // ── Rule 5: SL/TP Never Hit ──
+        if (trade.exitTime && !isNaN(trade.exitPrice)) {
+            const subsequentCandles = findCandleRange(trade.time, trade.exitTime);
+            
+            if (!isNaN(trade.tp) && subsequentCandles.length > 0) {
+                const isBuy = trade.side === 'BUY';
+                const tpHit = isBuy 
+                    ? subsequentCandles.some(c => c.high >= trade.tp)
+                    : subsequentCandles.some(c => c.low <= trade.tp);
+                
+                // If exit price is at TP but TP was never hit in the data
+                if (Math.abs(trade.exitPrice - trade.tp) < 0.02 && !tpHit) {
+                    issues.push({
+                        severity: 'critical',
+                        rule: 'TP Never Reached',
+                        message: `Exit at TP ${trade.tp.toFixed(2)} but price never reached it in candle data`,
+                        icon: '🔴',
+                    });
+                }
+            }
+
+            if (!isNaN(trade.sl) && subsequentCandles.length > 0) {
+                const isBuy = trade.side === 'BUY';
+                const slHit = isBuy
+                    ? subsequentCandles.some(c => c.low <= trade.sl)
+                    : subsequentCandles.some(c => c.high >= trade.sl);
+
+                if (Math.abs(trade.exitPrice - trade.sl) < 0.02 && !slHit) {
+                    issues.push({
+                        severity: 'critical',
+                        rule: 'SL Never Reached',
+                        message: `Exit at SL ${trade.sl.toFixed(2)} but price never reached it in candle data`,
+                        icon: '🔴',
+                    });
+                }
+            }
+        }
+
+        // ── Rule 6: Exit Before Entry ──
+        if (trade.exitTime && trade.exitTime < trade.time) {
+            issues.push({
+                severity: 'critical',
+                rule: 'Exit Before Entry',
+                message: `Exit time is ${Math.round((trade.time - trade.exitTime) / 60)} min before entry`,
+                icon: '🔴',
+            });
+        }
+
+        // ── Rule 7: Unrealistic Fill (exact High or Low) ──
+        if (entryCandle) {
+            if (Math.abs(trade.price - entryCandle.high) < 0.005) {
+                issues.push({
+                    severity: 'suspect',
+                    rule: 'Exact High Fill',
+                    message: `Entry at exact candle High ${entryCandle.high.toFixed(2)} — suspiciously perfect`,
+                    icon: '🟠',
+                });
+            } else if (Math.abs(trade.price - entryCandle.low) < 0.005) {
+                issues.push({
+                    severity: 'suspect',
+                    rule: 'Exact Low Fill',
+                    message: `Entry at exact candle Low ${entryCandle.low.toFixed(2)} — suspiciously perfect`,
+                    icon: '🟠',
+                });
+            }
+        }
+
+        // Tally
+        if (issues.length === 0) {
+            validationSummary.clean++;
+        } else {
+            if (issues.some(i => i.severity === 'critical')) validationSummary.critical++;
+            else if (issues.some(i => i.severity === 'warning')) validationSummary.warning++;
+            else validationSummary.suspect++;
+        }
+
+        validationResults.push({ tradeIdx: idx, issues: issues });
+    });
+}
+
+function showValidationBadge() {
+    // Add or update the validation badge in the toolbar
+    let badge = document.getElementById('validationBadge');
+    if (!badge) {
+        const toolbar = document.querySelector('.toolbar');
+        const sep = document.createElement('div');
+        sep.className = 'toolbar-sep';
+        sep.id = 'validationSep';
+        toolbar.appendChild(sep);
+
+        badge = document.createElement('button');
+        badge.id = 'validationBadge';
+        badge.className = 'validation-badge';
+        badge.onclick = toggleValidationPanel;
+        toolbar.appendChild(badge);
+    }
+
+    const totalIssues = validationSummary.critical + validationSummary.warning + validationSummary.suspect;
+    badge.classList.add('visible');
+
+    if (totalIssues > 0) {
+        badge.className = 'validation-badge visible has-issues';
+        badge.innerHTML = `⚠ ${totalIssues} Flagged`;
+    } else {
+        badge.className = 'validation-badge visible all-clean';
+        badge.innerHTML = `✅ All Clean`;
+    }
+
+    // Update panel counts
+    document.getElementById('valCriticalCount').textContent = validationSummary.critical > 0 ? `${validationSummary.critical} Critical` : '';
+    document.getElementById('valWarningCount').textContent = validationSummary.warning > 0 ? `${validationSummary.warning} Warnings` : '';
+    document.getElementById('valCleanCount').textContent = `${validationSummary.clean} Clean`;
+
+    // Auto-open panel if there are issues
+    if (totalIssues > 0) {
+        renderValidationList();
+        document.getElementById('validationPanel').classList.add('visible');
+    }
+}
+
+function toggleValidationPanel() {
+    const panel = document.getElementById('validationPanel');
+    panel.classList.toggle('visible');
+    if (panel.classList.contains('visible')) {
+        renderValidationList();
+    }
+}
+
+function renderValidationList() {
+    const list = document.getElementById('validationList');
+    const flagged = validationResults.filter(vr => vr.issues.length > 0);
+
+    if (flagged.length === 0) {
+        list.innerHTML = '<div style="padding: 12px 16px; color: var(--green-bright); font-size: 11px;">✅ All trades validated — no anomalies detected.</div>';
+        return;
+    }
+
+    let html = '';
+    flagged.forEach(vr => {
+        const t = tradesData[vr.tradeIdx];
+        const isBuy = t.side === 'BUY';
+        vr.issues.forEach(issue => {
+            html += `
+                <div class="val-row ${issue.severity}" onclick="navigateToTrade(${vr.tradeIdx})">
+                    <span class="val-icon">${issue.icon}</span>
+                    <span class="val-trade-ref">${isBuy ? 'BUY' : 'SELL'} #${vr.tradeIdx + 1}</span>
+                    <span class="val-message">${issue.message}</span>
+                    <span class="val-detail">${issue.rule}</span>
+                </div>
+            `;
+        });
+    });
+
+    list.innerHTML = html;
+}
+
+function navigateToTrade(idx) {
+    currentTradeIdx = idx;
+    highlightTrade(idx);
+}
+
+function getTradeValidationHTML(idx) {
+    if (!validationResults.length || !validationResults[idx]) return '';
+    const vr = validationResults[idx];
+
+    if (vr.issues.length === 0) {
+        return `<div class="trade-validation-box clean">✅ VALIDATED — trade matches candle data</div>`;
+    }
+
+    let issuesHtml = vr.issues.map(i =>
+        `<div class="val-issue-line"><span class="val-issue-icon">${i.icon}</span> ${i.message}</div>`
+    ).join('');
+
+    return `
+        <div class="trade-validation-box flagged">
+            <div style="font-weight: 700; margin-bottom: 4px;">⚠ ${vr.issues.length} ISSUE${vr.issues.length > 1 ? 'S' : ''} DETECTED</div>
+            ${issuesHtml}
+        </div>
+    `;
+}
+
+function exportValidationReport() {
+    if (!tradesData.length) { alert('No trades loaded to export.'); return; }
+
+    const headers = ['Trade #', 'Side', 'Entry Time', 'Entry Price', 'SL', 'TP', 'Exit Time', 'Exit Price', 'P&L', 'Duration', 'Validation Status', 'Issues'];
+    const rows = tradesData.map((t, idx) => {
+        const vr = validationResults[idx];
+        const status = (!vr || vr.issues.length === 0) ? 'CLEAN' : 'FLAGGED';
+        const issueList = vr ? vr.issues.map(i => `[${i.severity.toUpperCase()}] ${i.rule}: ${i.message}`).join(' | ') : '';
+        const dur = t.exitTime ? Math.round((t.exitTime - t.time) / 60) + 'm' : '—';
+        return [
+            idx + 1,
+            t.side,
+            new Date(t.time * 1000).toISOString(),
+            t.price.toFixed(2),
+            !isNaN(t.sl) ? t.sl.toFixed(2) : '',
+            !isNaN(t.tp) ? t.tp.toFixed(2) : '',
+            t.exitTime ? new Date(t.exitTime * 1000).toISOString() : '',
+            !isNaN(t.exitPrice) ? t.exitPrice.toFixed(2) : '',
+            !isNaN(t.pnl) ? t.pnl.toFixed(2) : '',
+            dur,
+            status,
+            '"' + issueList.replace(/"/g, '""') + '"',
+        ].join(',');
+    });
+
+    const csv = [headers.join(','), ...rows].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `validation_report_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// PNL CALENDAR (Modal with click-to-navigate)
+// ═════════════════════════════════════════════════════════════════════
+let calCurrentMonth = null;
+let dailyPnlData = {};  // { 'YYYY-MM-DD': { pnl, trades, wins, losses, times: ['09:35','10:12',...] } }
+
+function buildDailyPnl() {
+    dailyPnlData = {};
+    tradesData.forEach(t => {
+        if (isNaN(t.pnl)) return;
+        const d = new Date(t.time * 1000);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        if (!dailyPnlData[key]) dailyPnlData[key] = { pnl: 0, trades: 0, wins: 0, losses: 0, times: [] };
+        dailyPnlData[key].pnl += t.pnl;
+        dailyPnlData[key].trades++;
+        dailyPnlData[key].times.push(`${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`);
+        if (t.pnl > 0) dailyPnlData[key].wins++;
+        else if (t.pnl < 0) dailyPnlData[key].losses++;
+    });
+
+    if (tradesData.length > 0) {
+        const first = new Date(tradesData[0].time * 1000);
+        calCurrentMonth = { year: first.getFullYear(), month: first.getMonth() };
+    }
+}
+
+function showPnlCalendar() {
+    if (!tradesData.length) return;
+    buildDailyPnl();
+    renderCalMonth();
+
+    // Add calendar toggle button to toolbar if not present
+    if (!document.getElementById('btnCalToggle')) {
+        const toolbar = document.querySelector('.toolbar');
+        const sep = document.createElement('div');
+        sep.className = 'toolbar-sep';
+        toolbar.appendChild(sep);
+
+        const btn = document.createElement('button');
+        btn.id = 'btnCalToggle';
+        btn.className = 'draw-btn';
+        btn.innerHTML = '📅 Calendar';
+        btn.onclick = togglePnlCalendar;
+        toolbar.appendChild(btn);
+    }
+}
+
+function togglePnlCalendar() {
+    const overlay = document.getElementById('pnlCalOverlay');
+    overlay.classList.toggle('visible');
+    if (overlay.classList.contains('visible')) renderCalMonth();
+}
+
+function navCalMonth(dir) {
+    if (!calCurrentMonth) return;
+    calCurrentMonth.month += dir;
+    if (calCurrentMonth.month > 11) { calCurrentMonth.month = 0; calCurrentMonth.year++; }
+    if (calCurrentMonth.month < 0) { calCurrentMonth.month = 11; calCurrentMonth.year--; }
+    renderCalMonth();
+}
+
+function renderCalMonth() {
+    if (!calCurrentMonth) return;
+    const { year, month } = calCurrentMonth;
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    document.getElementById('pnlCalTitle').textContent = `${monthNames[month]} ${year}`;
+
+    const grid = document.getElementById('pnlCalGrid');
+    grid.innerHTML = '';
+
+    ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'].forEach(n => {
+        const el = document.createElement('div');
+        el.className = 'pnl-cal-dayname';
+        el.textContent = n;
+        grid.appendChild(el);
+    });
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const startOffset = (firstDay === 0) ? 6 : firstDay - 1;
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+    const monthDays = Object.keys(dailyPnlData).filter(k => k.startsWith(`${year}-${String(month + 1).padStart(2, '0')}`));
+    const maxPnl = Math.max(...monthDays.map(k => Math.abs(dailyPnlData[k].pnl)), 1);
+
+    for (let i = 0; i < startOffset; i++) {
+        const el = document.createElement('div');
+        el.className = 'pnl-cal-cell empty';
+        grid.appendChild(el);
+    }
+
+    let monthPnl = 0, monthTrades = 0, monthWins = 0, bestDay = -Infinity, worstDay = Infinity, tradingDays = 0;
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const data = dailyPnlData[key];
+        const dayOfWeek = new Date(year, month, d).getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+        const el = document.createElement('div');
+
+        if (data) {
+            monthPnl += data.pnl;
+            monthTrades += data.trades;
+            monthWins += data.wins;
+            tradingDays++;
+            if (data.pnl > bestDay) bestDay = data.pnl;
+            if (data.pnl < worstDay) worstDay = data.pnl;
+
+            const isBig = Math.abs(data.pnl) > maxPnl * 0.6;
+            const winClass = data.pnl >= 0 ? (isBig ? 'big-win' : 'win') : (isBig ? 'big-loss' : 'loss');
+            const timesStr = data.times.slice(0, 4).join(' ') + (data.times.length > 4 ? '…' : '');
+            el.className = `pnl-cal-cell has-trades ${winClass}`;
+            el.innerHTML = `
+                <span class="day-num">${d}</span>
+                <span class="day-pnl">${data.pnl >= 0 ? '+' : ''}${data.pnl.toFixed(2)}</span>
+                <span class="day-trades">${data.trades}t | ${data.trades > 0 ? Math.round(data.wins / data.trades * 100) : 0}%</span>
+                <span class="day-times">${timesStr}</span>
+            `;
+            // Click to navigate chart to this day
+            el.onclick = () => calNavigateToDay(year, month, d);
+        } else {
+            el.className = `pnl-cal-cell empty ${isWeekend ? 'weekend' : ''}`;
+            el.innerHTML = `<span class="day-num" style="opacity:0.3">${d}</span>`;
+        }
+
+        grid.appendChild(el);
+    }
+
+    const summary = document.getElementById('pnlCalSummary');
+    const pnlClass = monthPnl >= 0 ? 'stat-positive' : 'stat-negative';
+    summary.innerHTML = `
+        <div class="cal-stat"><span class="cal-stat-label">Net P&L</span><span class="cal-stat-val ${pnlClass}">${monthPnl >= 0 ? '+' : ''}${monthPnl.toFixed(2)}</span></div>
+        <div class="cal-stat"><span class="cal-stat-label">Trading Days</span><span class="cal-stat-val">${tradingDays}</span></div>
+        <div class="cal-stat"><span class="cal-stat-label">Trades</span><span class="cal-stat-val">${monthTrades}</span></div>
+        <div class="cal-stat"><span class="cal-stat-label">Win Rate</span><span class="cal-stat-val">${monthTrades > 0 ? Math.round(monthWins / monthTrades * 100) : 0}%</span></div>
+        <div class="cal-stat"><span class="cal-stat-label">Best Day</span><span class="cal-stat-val stat-positive">${bestDay > -Infinity ? '+' + bestDay.toFixed(2) : '—'}</span></div>
+        <div class="cal-stat"><span class="cal-stat-label">Worst Day</span><span class="cal-stat-val stat-negative">${worstDay < Infinity ? worstDay.toFixed(2) : '—'}</span></div>
+        <div class="cal-stat"><span class="cal-stat-label">Avg Daily</span><span class="cal-stat-val ${pnlClass}">${tradingDays > 0 ? (monthPnl / tradingDays).toFixed(2) : '—'}</span></div>
+    `;
+}
+
+function calNavigateToDay(year, month, day) {
+    // Close the calendar modal
+    document.getElementById('pnlCalOverlay').classList.remove('visible');
+
+    // Calculate the unix timestamps for start/end of that day
+    const dayStart = new Date(year, month, day, 0, 0, 0);
+    const dayEnd = new Date(year, month, day, 23, 59, 59);
+    const tsStart = Math.floor(dayStart.getTime() / 1000);
+    const tsEnd = Math.floor(dayEnd.getTime() / 1000);
+
+    // Set the chart time range to this day
+    if (typeof chart !== 'undefined' && chart && chart.timeScale) {
+        chart.timeScale().setVisibleRange({
+            from: tsStart,
+            to: tsEnd,
+        });
+    }
+
+    // Find the first trade on this day and navigate to it
+    const dayTradeIdx = tradesData.findIndex(t => {
+        const td = new Date(t.time * 1000);
+        return td.getFullYear() === year && td.getMonth() === month && td.getDate() === day;
+    });
+
+    if (dayTradeIdx >= 0) {
+        currentTradeIdx = dayTradeIdx;
+        highlightTrade(dayTradeIdx);
+    }
+}
+
+function calShowAllDays() {
+    // Close modal and reset chart to show all data
+    document.getElementById('pnlCalOverlay').classList.remove('visible');
+    if (typeof chart !== 'undefined' && chart && chart.timeScale) {
+        chart.timeScale().fitContent();
+    }
+}
+
+
+// ═════════════════════════════════════════════════════════════════════
+// DATA FORMAT SELECTOR + MULTI-FORMAT PARSERS
+// ═════════════════════════════════════════════════════════════════════
+const FORMAT_HINTS = {
+    ninjatrader: 'DateTime,Type,Price,Bid,Ask,Volume',
+    tradingview: 'time,open,high,low,close,volume',
+    topstepx: 'DateTime,Type,Price,Bid,Ask,Volume',
+    databento: 'ts_event,price,size,action,side',
+    custom: 'Auto-detect from CSV headers',
+};
+
+// ── CSV Preview Modal Logic ──
+let csvPreviewResumeCallback = null;
+
+function showCsvPreview(headers, rows, colMap, delimiter, format, resumeFn) {
+    csvPreviewResumeCallback = resumeFn;
+    const delimNames = { ',': 'Comma', '\t': 'Tab', ';': 'Semicolon', '|': 'Pipe' };
+
+    // Info tags
+    const info = document.getElementById('csvPreviewInfo');
+    info.innerHTML = `
+        <span class="pv-tag">Format: <b>${format.toUpperCase()}</b></span>
+        <span class="pv-tag">Delimiter: <b>${delimNames[delimiter] || delimiter}</b></span>
+        <span class="pv-tag">Columns: <b>${headers.length}</b></span>
+        <span class="pv-tag">Preview: <b>${rows.length} rows</b></span>
+    `;
+
+    // Column mapping chips
+    const mapping = document.getElementById('csvPreviewMapping');
+    const roles = ['time','open','high','low','close','volume'];
+    mapping.innerHTML = roles.map(role => {
+        const idx = colMap[role];
+        const colName = idx !== undefined && idx < headers.length ? headers[idx] : '—';
+        const isMissing = idx === undefined || idx >= headers.length;
+        let cls = 'map-chip';
+        if (isMissing) cls += ' missing';
+        return `<span class="${cls}"><span class="map-role">${role}</span><span class="map-arrow">→</span><span class="map-col">${colName}</span></span>`;
+    }).join('');
+
+    // Data table
+    const table = document.getElementById('csvPreviewTable');
+    let html = '<thead><tr>';
+    headers.forEach((h, i) => {
+        const role = colMap ? Object.entries(colMap).find(([,v]) => v === i) : null;
+        const highlight = role ? ` style="color:var(--accent)"` : '';
+        html += `<th${highlight}>${h}${role ? ' (' + role[0] + ')' : ''}</th>`;
+    });
+    html += '</tr></thead><tbody>';
+    rows.forEach(row => {
+        html += '<tr>';
+        row.forEach((cell, i) => {
+            const role = colMap ? Object.entries(colMap).find(([,v]) => v === i) : null;
+            const highlight = role ? ' style="color:var(--text-primary)"' : '';
+            html += `<td${highlight}>${cell}</td>`;
+        });
+        html += '</tr>';
+    });
+    html += '</tbody>';
+    table.innerHTML = html;
+
+    document.getElementById('csvPreviewOverlay').classList.add('visible');
+}
+
+function confirmCsvPreview() {
+    document.getElementById('csvPreviewOverlay').classList.remove('visible');
+    if (csvPreviewResumeCallback) {
+        csvPreviewResumeCallback();
+        csvPreviewResumeCallback = null;
+    }
+}
+
+function cancelCsvPreview() {
+    document.getElementById('csvPreviewOverlay').classList.remove('visible');
+    csvPreviewResumeCallback = null;
+    resetToUpload();
+}
+
+function updateFormatHint() {
+    const fmt = document.getElementById('formatSelect').value;
+    document.getElementById('formatHint').textContent = FORMAT_HINTS[fmt] || '';
+}
+
+
+
 
 // ═════════════════════════════════════════════════════════════════════
 // DRAWING TOOLS (Horizontal & Vertical Lines)
@@ -2002,9 +3652,11 @@ function clearAllDrawings() {
     userVLines = [];
 }
 
-// Add H/V keyboard shortcuts for drawing
+// Add H/V keyboard shortcuts for drawing (skip if typing in an input)
 document.addEventListener('keydown', (e) => {
     if (!chart) return;
+    const tag = e.target.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target.isContentEditable) return;
     if (e.key === 'h' || e.key === 'H') toggleDrawingMode('hline');
     if (e.key === 'v' || e.key === 'V') toggleDrawingMode('vline');
     if (e.key === 'Delete') clearAllDrawings();
@@ -2158,12 +3810,16 @@ function createRSIPanel(candles) {
 
     rsiChart.timeScale().fitContent();
 
-    // Sync time scales
-    chart.timeScale().subscribeVisibleTimeRangeChange((range) => {
+    // Sync time scales — clean up previous subscription first
+    if (rsiSyncUnsub) {
+        try { chart.timeScale().unsubscribeVisibleTimeRangeChange(rsiSyncUnsub); } catch(e) {}
+    }
+    rsiSyncUnsub = (range) => {
         if (rsiChart) {
             try { rsiChart.timeScale().setVisibleRange(range); } catch(e) {}
         }
-    });
+    };
+    chart.timeScale().subscribeVisibleTimeRangeChange(rsiSyncUnsub);
 
     new ResizeObserver(() => {
         if (rsiChart) rsiChart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
