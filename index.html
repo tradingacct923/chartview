@@ -506,6 +506,188 @@
         }
 
         #equityChart { width: 100%; height: 100%; }
+
+        /* ─── Trade Navigator ───────────────────────────────────────── */
+        .trade-nav {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+        }
+
+        .trade-nav.visible { display: flex; }
+
+        .trade-nav-btn {
+            padding: 3px 8px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+        }
+
+        .trade-nav-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+        .trade-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+        .trade-nav-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            padding: 0 4px;
+        }
+
+        /* ─── Trade Info Box ───────────────────────────────────────── */
+        .trade-info-box {
+            display: none;
+            position: absolute;
+            top: 36px;
+            right: 8px;
+            z-index: 10;
+            background: rgba(18, 18, 28, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-active);
+            border-radius: 8px;
+            padding: 12px 16px;
+            min-width: 220px;
+            font-size: 11px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        .trade-info-box.visible { display: block; }
+
+        .trade-info-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .trade-side-badge {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        .trade-side-badge.buy { background: rgba(0, 230, 118, 0.15); color: #00e676; }
+        .trade-side-badge.sell { background: rgba(255, 82, 82, 0.15); color: #ff5252; }
+
+        .trade-info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 3px 0;
+        }
+
+        .trade-info-key { color: var(--text-muted); }
+        .trade-info-val { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+        .trade-pnl-box {
+            margin-top: 8px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .trade-pnl-box.win { background: rgba(0, 230, 118, 0.12); color: #00e676; border: 1px solid rgba(0, 230, 118, 0.25); }
+        .trade-pnl-box.loss { background: rgba(255, 82, 82, 0.12); color: #ff5252; border: 1px solid rgba(255, 82, 82, 0.25); }
+
+        /* ─── Drawing Tools ─────────────────────────────────────────── */
+        .draw-btn {
+            padding: 4px 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .draw-btn:hover { border-color: var(--accent); color: var(--text-primary); }
+        .draw-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(41, 98, 255, 0.1); }
+
+        .refresh-btn {
+            padding: 3px 12px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .refresh-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* ─── Indicator Toggle Buttons ───────────────────────────────────── */
+        .ind-btn {
+            padding: 3px 8px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.15s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .ind-btn:hover { color: var(--text-primary); }
+        .ind-btn.active { color: var(--text-primary); background: var(--bg-tertiary); border-color: var(--border); }
+
+        .ind-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            display: inline-block;
+        }
+
+        .rsi-wrapper {
+            height: 0;
+            background: var(--bg-primary);
+            border-top: 1px solid var(--border);
+            transition: height 0.3s ease;
+            position: relative;
+        }
+
+        .rsi-wrapper.visible { height: 100px; }
+
+        .rsi-label {
+            position: absolute;
+            top: 4px;
+            left: 8px;
+            z-index: 5;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-muted);
+            background: rgba(12, 12, 18, 0.8);
+            padding: 2px 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+        }
+
+        #rsiChart { width: 100%; height: 100%; }
     </style>
 </head>
 <body>
@@ -581,11 +763,43 @@
         <div class="toolbar-sep"></div>
         <span class="toolbar-label" id="tickCountLabel">—</span>
         <div class="toolbar-sep"></div>
+        <button class="ind-btn active" id="indEma9" onclick="toggleIndicator('ema9')" title="EMA 9">
+            <span class="ind-dot" style="background:#ffd54f"></span>EMA 9
+        </button>
+        <button class="ind-btn active" id="indEma21" onclick="toggleIndicator('ema21')" title="EMA 21">
+            <span class="ind-dot" style="background:#26c6da"></span>EMA 21
+        </button>
+        <button class="ind-btn" id="indSma50" onclick="toggleIndicator('sma50')" title="SMA 50">
+            <span class="ind-dot" style="background:#ff9800"></span>SMA 50
+        </button>
+        <button class="ind-btn" id="indSma200" onclick="toggleIndicator('sma200')" title="SMA 200">
+            <span class="ind-dot" style="background:#e040fb"></span>SMA 200
+        </button>
+        <button class="ind-btn active" id="indVwap" onclick="toggleIndicator('vwap')" title="VWAP">
+            <span class="ind-dot" style="background:#fff"></span>VWAP
+        </button>
+        <button class="ind-btn active" id="indRsi" onclick="toggleIndicator('rsi')" title="RSI 14">
+            <span class="ind-dot" style="background:#b388ff"></span>RSI
+        </button>
+        <div class="toolbar-sep"></div>
         <button class="trades-btn" id="btnTrades" onclick="document.getElementById('tradesInput').click()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
             Load Trades
         </button>
         <input type="file" id="tradesInput" accept=".csv" style="display:none" onchange="loadTradesFile(this.files[0])">
+        <div class="toolbar-sep"></div>
+        <button class="draw-btn" id="btnHLine" onclick="toggleDrawingMode('hline')" title="Horizontal Line (H)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="2" y1="12" x2="22" y2="12"/></svg>
+            H-Line
+        </button>
+        <button class="draw-btn" id="btnVLine" onclick="toggleDrawingMode('vline')" title="Vertical Line (V)">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="2" x2="12" y2="22"/></svg>
+            V-Line
+        </button>
+        <button class="draw-btn" id="btnClearDraw" onclick="clearAllDrawings()" title="Clear All Lines">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Clear
+        </button>
     </div>
 
     <div class="trades-stats" id="tradesStats"></div>
@@ -600,11 +814,17 @@
             <div class="ohlcv-item"><span class="ohlcv-label">Vol</span> <span class="ohlcv-value" id="infoV">—</span></div>
         </div>
         <div id="chart"></div>
+        <div class="trade-info-box" id="tradeInfoBox"></div>
     </div>
 
     <div class="equity-wrapper" id="equityWrapper">
         <div class="equity-label">Equity Curve</div>
         <div id="equityChart"></div>
+    </div>
+
+    <div class="rsi-wrapper" id="rsiWrapper">
+        <div class="rsi-label" id="rsiLabel">RSI 14</div>
+        <div id="rsiChart"></div>
     </div>
 
     <div class="status-bar">
@@ -613,8 +833,12 @@
             <span id="statusCandles">—</span>
         </div>
         <div class="status-right">
+            <button class="refresh-btn" onclick="resetToUpload()" title="Upload new file">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                Refresh
+            </button>
             <span id="statusRange">—</span>
-            <span>Tick Viewer v1.0</span>
+            <span>Tick Viewer v2.0</span>
         </div>
     </div>
 </div>
@@ -629,9 +853,18 @@ let currentTf = localStorage.getItem('tv_timeframe') || '5m';
 let chartType = localStorage.getItem('tv_chartType') || 'candle';
 let fileName = '';
 let totalLastTicks = 0;
-let tradesData = [];    // parsed trades
-let equityChart = null; // equity curve chart
+let tradesData = [];       // parsed trades
+let equityChart = null;    // equity curve chart
 let equitySeries = null;
+let currentTradeIdx = -1;  // selected trade index
+let tradePriceLines = [];  // active price lines on chart
+let rsiChart = null, rsiSeries = null; // RSI panel
+
+// Indicator line series
+let indSeries = {};
+let indEnabled = {
+    ema9: true, ema21: true, sma50: false, sma200: false, vwap: true, rsi: true
+};
 
 const TIMEFRAMES = [
     { key: '1s',  label: '1s',  seconds: 1 },
@@ -996,6 +1229,13 @@ function createChart() {
     new ResizeObserver(() => {
         chart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
     }).observe(container);
+
+    // Create indicator series
+    indSeries.ema9 = chart.addLineSeries({ color: '#ffd54f', lineWidth: 1, title: 'EMA 9', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    indSeries.ema21 = chart.addLineSeries({ color: '#26c6da', lineWidth: 1, title: 'EMA 21', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    indSeries.sma50 = chart.addLineSeries({ color: '#ff9800', lineWidth: 1, title: 'SMA 50', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    indSeries.sma200 = chart.addLineSeries({ color: '#e040fb', lineWidth: 1, title: 'SMA 200', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    indSeries.vwap = chart.addLineSeries({ color: '#ffffff', lineWidth: 1, lineStyle: 2, title: 'VWAP', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
 }
 
 function setTimeframe(tf) {
@@ -1031,6 +1271,9 @@ function setTimeframe(tf) {
     const s = new Date(first.time * 1000).toLocaleDateString();
     const e = new Date(last.time * 1000).toLocaleDateString();
     document.getElementById('statusRange').textContent = `${s} – ${e}`;
+
+    // Update indicators
+    updateIndicators(candles);
 }
 
 function setChartType(type) {
@@ -1083,6 +1326,11 @@ function resetToUpload() {
 document.addEventListener('keydown', (e) => {
     const m = { '1': '1s', '2': '5s', '3': '30s', '4': '1m', '5': '5m', '6': '15m', '7': '1h', '8': '4h' };
     if (m[e.key] && chart) setTimeframe(m[e.key]);
+    // Trade navigation: [ and ] or left/right arrows when trades loaded
+    if (tradesData.length && chart) {
+        if (e.key === '[' || (e.key === 'ArrowLeft' && e.shiftKey)) navigateTrade(-1);
+        if (e.key === ']' || (e.key === 'ArrowRight' && e.shiftKey)) navigateTrade(1);
+    }
 });
 
 // ═════════════════════════════════════════════════════════════════════
@@ -1219,7 +1467,33 @@ function showTradeStats() {
 function overlayTrades() {
     if (!candleSeries || !tradesData.length) return;
 
-    // Create markers for entries and exits
+    // Show trade navigator in toolbar
+    let nav = document.getElementById('tradeNav');
+    if (!nav) {
+        const toolbar = document.querySelector('.toolbar');
+        nav = document.createElement('div');
+        nav.id = 'tradeNav';
+        nav.className = 'trade-nav visible';
+        nav.innerHTML = `
+            <button class="trade-nav-btn" onclick="navigateTrade(-1)" id="btnPrevTrade">◀</button>
+            <span class="trade-nav-label" id="tradeNavLabel">Trade 1/${tradesData.length}</span>
+            <button class="trade-nav-btn" onclick="navigateTrade(1)" id="btnNextTrade">▶</button>
+            <button class="trade-nav-btn" onclick="showAllTrades()" title="Show all trades">All</button>
+        `;
+        toolbar.appendChild(nav);
+    } else {
+        nav.classList.add('visible');
+        document.getElementById('tradeNavLabel').textContent = `Trade 1/${tradesData.length}`;
+    }
+
+    // Show all trades as markers initially
+    showAllTrades();
+}
+
+function showAllTrades() {
+    clearTradeOverlay();
+    currentTradeIdx = -1;
+
     const markers = [];
     tradesData.forEach(t => {
         const isBuy = t.side === 'BUY';
@@ -1228,25 +1502,327 @@ function overlayTrades() {
             position: isBuy ? 'belowBar' : 'aboveBar',
             color: isBuy ? '#00e676' : '#ff5252',
             shape: isBuy ? 'arrowUp' : 'arrowDown',
-            text: `${isBuy ? 'BUY' : 'SELL'} @ ${t.price.toFixed(2)}`,
+            text: isBuy ? 'B' : 'S',
         });
-
-        // Exit marker
         if (t.exitTime && !isNaN(t.exitPrice)) {
-            const won = !isNaN(t.pnl) ? t.pnl >= 0 : true;
             markers.push({
                 time: t.exitTime,
                 position: isBuy ? 'aboveBar' : 'belowBar',
-                color: won ? '#00e676' : '#ff5252',
+                color: (!isNaN(t.pnl) && t.pnl >= 0) ? '#00e676' : '#ff5252',
                 shape: 'circle',
-                text: `EXIT ${t.exitPrice.toFixed(2)} ${!isNaN(t.pnl) ? (t.pnl >= 0 ? '+' : '') + t.pnl.toFixed(2) : ''}`,
+                text: !isNaN(t.pnl) ? (t.pnl >= 0 ? '+' : '') + t.pnl.toFixed(2) : '',
             });
         }
     });
-
-    // Sort markers by time (required by lightweight-charts)
     markers.sort((a, b) => a.time - b.time);
     candleSeries.setMarkers(markers);
+
+    // Draw shaded zones for ALL trades
+    const chartEl = document.getElementById('chart');
+    function drawAllZones() {
+        chartEl.querySelectorAll('.trade-zone').forEach(el => el.remove());
+        const timeScale = chart.timeScale();
+
+        tradesData.forEach((t, i) => {
+            const entryTime = t.time;
+            const exitTime = t.exitTime || (t.time + 600);
+            const x1 = timeScale.timeToCoordinate(entryTime);
+            const x2 = timeScale.timeToCoordinate(exitTime);
+            if (x1 === null || x2 === null) return;
+
+            const left = Math.min(x1, x2);
+            const width = Math.max(Math.abs(x2 - x1), 20);
+            const yEntry = candleSeries.priceToCoordinate(t.price);
+            if (yEntry === null) return;
+
+            // TP zone
+            if (!isNaN(t.tp)) {
+                const yTp = candleSeries.priceToCoordinate(t.tp);
+                if (yTp !== null) {
+                    const zone = document.createElement('div');
+                    zone.className = 'trade-zone';
+                    const top = Math.min(yEntry, yTp);
+                    zone.style.cssText = `position:absolute;left:${left}px;top:${top}px;width:${width}px;height:${Math.abs(yEntry-yTp)}px;background:rgba(0,230,118,0.10);border:1px solid rgba(0,230,118,0.3);border-radius:2px;pointer-events:none;z-index:3;`;
+                    chartEl.appendChild(zone);
+                }
+            }
+            // SL zone
+            if (!isNaN(t.sl)) {
+                const ySl = candleSeries.priceToCoordinate(t.sl);
+                if (ySl !== null) {
+                    const zone = document.createElement('div');
+                    zone.className = 'trade-zone';
+                    const top = Math.min(yEntry, ySl);
+                    zone.style.cssText = `position:absolute;left:${left}px;top:${top}px;width:${width}px;height:${Math.abs(yEntry-ySl)}px;background:rgba(255,82,82,0.10);border:1px solid rgba(255,82,82,0.3);border-radius:2px;pointer-events:none;z-index:3;`;
+                    chartEl.appendChild(zone);
+                }
+            }
+        });
+    }
+
+    drawAllZones();
+    tradeZoneRedrawFn = drawAllZones;
+    chart.timeScale().subscribeVisibleLogicalRangeChange(drawAllZones);
+
+    document.getElementById('tradeInfoBox').classList.remove('visible');
+    document.getElementById('tradeNavLabel').textContent = `All ${tradesData.length}`;
+}
+
+function navigateTrade(dir) {
+    if (!tradesData.length) return;
+    
+    if (currentTradeIdx === -1) {
+        currentTradeIdx = dir > 0 ? 0 : tradesData.length - 1;
+    } else {
+        currentTradeIdx = Math.max(0, Math.min(tradesData.length - 1, currentTradeIdx + dir));
+    }
+
+    highlightTrade(currentTradeIdx);
+}
+
+function highlightTrade(idx) {
+    clearTradeOverlay();
+    const t = tradesData[idx];
+    if (!t) return;
+
+    currentTradeIdx = idx;
+    const isBuy = t.side === 'BUY';
+
+    // Update nav label
+    document.getElementById('tradeNavLabel').textContent = `Trade ${idx + 1}/${tradesData.length}`;
+    document.getElementById('btnPrevTrade').disabled = idx === 0;
+    document.getElementById('btnNextTrade').disabled = idx === tradesData.length - 1;
+
+    // Entry marker
+    const markers = [{
+        time: t.time,
+        position: isBuy ? 'belowBar' : 'aboveBar',
+        color: isBuy ? '#00e676' : '#ff5252',
+        shape: isBuy ? 'arrowUp' : 'arrowDown',
+        text: `${isBuy ? 'BUY' : 'SELL'} @ ${t.price.toFixed(2)}`,
+    }];
+
+    // Exit marker
+    if (t.exitTime && !isNaN(t.exitPrice)) {
+        markers.push({
+            time: t.exitTime,
+            position: isBuy ? 'aboveBar' : 'belowBar',
+            color: (!isNaN(t.pnl) && t.pnl >= 0) ? '#00e676' : '#ff5252',
+            shape: 'circle',
+            text: `EXIT @ ${t.exitPrice.toFixed(2)}`,
+        });
+    }
+    candleSeries.setMarkers(markers);
+
+    // ── Entry price line (dashed) ──
+    tradePriceLines.push(candleSeries.createPriceLine({
+        price: t.price,
+        color: '#448aff',
+        lineWidth: 1,
+        lineStyle: 2,
+        axisLabelVisible: true,
+        title: '',
+    }));
+
+    // ── Draw shaded TP/SL zones using HTML overlays ──
+    const chartEl = document.getElementById('chart');
+    const entryTime = t.time;
+    const exitTime = t.exitTime || (t.time + 1200);
+
+    function drawTradeZones() {
+        // Remove old zone divs
+        chartEl.querySelectorAll('.trade-zone').forEach(el => el.remove());
+
+        const timeScale = chart.timeScale();
+        const priceScale = candleSeries;
+
+        // Get pixel coordinates
+        const x1 = timeScale.timeToCoordinate(entryTime);
+        const x2 = timeScale.timeToCoordinate(exitTime);
+        if (x1 === null || x2 === null) return;
+
+        const left = Math.min(x1, x2);
+        const width = Math.max(Math.abs(x2 - x1), 40);
+        const yEntry = priceScale.priceToCoordinate(t.price);
+        if (yEntry === null) return;
+
+        // ── TP Zone (green shaded box) ──
+        if (!isNaN(t.tp)) {
+            const yTp = priceScale.priceToCoordinate(t.tp);
+            if (yTp !== null) {
+                const tpTop = Math.min(yEntry, yTp);
+                const tpHeight = Math.abs(yEntry - yTp);
+                const tpPoints = Math.abs(t.tp - t.price).toFixed(2);
+
+                const tpZone = document.createElement('div');
+                tpZone.className = 'trade-zone';
+                tpZone.style.cssText = `
+                    position: absolute; left: ${left}px; top: ${tpTop}px;
+                    width: ${width}px; height: ${tpHeight}px;
+                    background: rgba(0, 230, 118, 0.12);
+                    border: 1px solid rgba(0, 230, 118, 0.35);
+                    border-radius: 3px;
+                    pointer-events: none; z-index: 3;
+                `;
+                chartEl.appendChild(tpZone);
+
+                // TP Label
+                const tpLabel = document.createElement('div');
+                tpLabel.className = 'trade-zone';
+                tpLabel.style.cssText = `
+                    position: absolute; left: ${left + 4}px; top: ${tpTop + 2}px;
+                    background: rgba(0, 230, 118, 0.85); color: #000;
+                    padding: 2px 8px; border-radius: 3px;
+                    font-size: 10px; font-weight: 700; font-family: 'Inter', sans-serif;
+                    pointer-events: none; z-index: 4; white-space: nowrap;
+                `;
+                tpLabel.textContent = `Target: ${t.tp.toFixed(2)} (+${tpPoints} pts)`;
+                chartEl.appendChild(tpLabel);
+            }
+        }
+
+        // ── SL Zone (red shaded box) ──
+        if (!isNaN(t.sl)) {
+            const ySl = priceScale.priceToCoordinate(t.sl);
+            if (ySl !== null) {
+                const slTop = Math.min(yEntry, ySl);
+                const slHeight = Math.abs(yEntry - ySl);
+                const slPoints = Math.abs(t.sl - t.price).toFixed(2);
+
+                const slZone = document.createElement('div');
+                slZone.className = 'trade-zone';
+                slZone.style.cssText = `
+                    position: absolute; left: ${left}px; top: ${slTop}px;
+                    width: ${width}px; height: ${slHeight}px;
+                    background: rgba(255, 82, 82, 0.12);
+                    border: 1px solid rgba(255, 82, 82, 0.35);
+                    border-radius: 3px;
+                    pointer-events: none; z-index: 3;
+                `;
+                chartEl.appendChild(slZone);
+
+                // SL Label
+                const slLabel = document.createElement('div');
+                slLabel.className = 'trade-zone';
+                slLabel.style.cssText = `
+                    position: absolute; left: ${left + 4}px; top: ${slTop + slHeight - 18}px;
+                    background: rgba(255, 82, 82, 0.85); color: #fff;
+                    padding: 2px 8px; border-radius: 3px;
+                    font-size: 10px; font-weight: 700; font-family: 'Inter', sans-serif;
+                    pointer-events: none; z-index: 4; white-space: nowrap;
+                `;
+                slLabel.textContent = `Stop: ${t.sl.toFixed(2)} (-${slPoints} pts)`;
+                chartEl.appendChild(slLabel);
+            }
+        }
+
+        // ── Entry Label ──
+        const entryLabel = document.createElement('div');
+        entryLabel.className = 'trade-zone';
+        entryLabel.style.cssText = `
+            position: absolute; left: ${left + 4}px; top: ${yEntry - 9}px;
+            background: rgba(68, 138, 255, 0.85); color: #fff;
+            padding: 2px 8px; border-radius: 3px;
+            font-size: 10px; font-weight: 700; font-family: 'Inter', sans-serif;
+            pointer-events: none; z-index: 4; white-space: nowrap;
+        `;
+        entryLabel.textContent = `${t.side} @ ${t.price.toFixed(2)}`;
+        chartEl.appendChild(entryLabel);
+
+        // ── P&L Result Label (at exit point) ──
+        if (!isNaN(t.pnl) && !isNaN(t.exitPrice)) {
+            const yExit = priceScale.priceToCoordinate(t.exitPrice);
+            if (yExit !== null) {
+                const pnlLabel = document.createElement('div');
+                pnlLabel.className = 'trade-zone';
+                const isWin = t.pnl >= 0;
+                const rr = (!isNaN(t.sl) && !isNaN(t.tp)) ?
+                    (Math.abs(t.tp - t.price) / Math.abs(t.sl - t.price)).toFixed(1) : '';
+                pnlLabel.style.cssText = `
+                    position: absolute; left: ${left + width + 6}px; top: ${yExit - 14}px;
+                    background: ${isWin ? 'rgba(0, 230, 118, 0.85)' : 'rgba(255, 82, 82, 0.85)'};
+                    color: ${isWin ? '#000' : '#fff'};
+                    padding: 3px 10px; border-radius: 4px;
+                    font-size: 11px; font-weight: 700; font-family: 'Inter', sans-serif;
+                    pointer-events: none; z-index: 4; white-space: nowrap;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                `;
+                pnlLabel.textContent = `P&L: ${isWin ? '+' : ''}${t.pnl.toFixed(2)} ${rr ? '| R:R ' + rr : ''}`;
+                chartEl.appendChild(pnlLabel);
+            }
+        }
+    }
+
+    // Draw zones now and on every scroll/zoom
+    drawTradeZones();
+    tradeZoneRedrawFn = drawTradeZones;
+    chart.timeScale().subscribeVisibleLogicalRangeChange(drawTradeZones);
+    chart.subscribeCrosshairMove(() => {}); // triggers reflow
+
+    // ── Trade Info Box ──
+    const box = document.getElementById('tradeInfoBox');
+    box.classList.add('visible');
+
+    const rr = (!isNaN(t.sl) && !isNaN(t.tp)) ?
+        (Math.abs(t.tp - t.price) / Math.abs(t.sl - t.price)).toFixed(2) : '—';
+    const pnlVal = !isNaN(t.pnl) ? t.pnl : 0;
+    const isWin = pnlVal >= 0;
+    const entryTimeStr = new Date(t.time * 1000).toLocaleString();
+    const exitTimeStr = t.exitTime ? new Date(t.exitTime * 1000).toLocaleString() : '—';
+
+    box.innerHTML = `
+        <div class="trade-info-header">
+            <span class="trade-side-badge ${isBuy ? 'buy' : 'sell'}">${t.side}</span>
+            <span style="color: var(--text-secondary); font-weight: 600;">Trade #${idx + 1}</span>
+        </div>
+        <div class="trade-info-row">
+            <span class="trade-info-key">Entry</span>
+            <span class="trade-info-val" style="color: #448aff;">${t.price.toFixed(2)}</span>
+        </div>
+        ${!isNaN(t.tp) ? `<div class="trade-info-row">
+            <span class="trade-info-key">✅ Target</span>
+            <span class="trade-info-val" style="color: #00e676;">${t.tp.toFixed(2)} <span style="opacity:0.6">(+${Math.abs(t.tp - t.price).toFixed(2)} pts)</span></span>
+        </div>` : ''}
+        ${!isNaN(t.sl) ? `<div class="trade-info-row">
+            <span class="trade-info-key">⛔ Stop</span>
+            <span class="trade-info-val" style="color: #ff5252;">${t.sl.toFixed(2)} <span style="opacity:0.6">(-${Math.abs(t.sl - t.price).toFixed(2)} pts)</span></span>
+        </div>` : ''}
+        ${!isNaN(t.exitPrice) ? `<div class="trade-info-row">
+            <span class="trade-info-key">Exit</span>
+            <span class="trade-info-val" style="color: #ffd54f;">${t.exitPrice.toFixed(2)}</span>
+        </div>` : ''}
+        <div class="trade-info-row">
+            <span class="trade-info-key">R:R</span>
+            <span class="trade-info-val">${rr}</span>
+        </div>
+        ${!isNaN(t.pnl) ? `<div class="trade-pnl-box ${isWin ? 'win' : 'loss'}">
+            P&L: ${isWin ? '+' : ''}${t.pnl.toFixed(2)} pts
+        </div>` : ''}
+    `;
+
+    // Scroll chart to this trade
+    chart.timeScale().setVisibleRange({
+        from: t.time - 600,
+        to: (t.exitTime || t.time) + 600,
+    });
+}
+
+let tradeZoneRedrawFn = null;
+
+function clearTradeOverlay() {
+    // Remove price lines
+    tradePriceLines.forEach(line => {
+        try { candleSeries.removePriceLine(line); } catch(e) {}
+    });
+    tradePriceLines = [];
+    candleSeries.setMarkers([]);
+    // Remove zone overlays
+    document.getElementById('chart').querySelectorAll('.trade-zone').forEach(el => el.remove());
+    // Unsubscribe redraw
+    if (tradeZoneRedrawFn) {
+        try { chart.timeScale().unsubscribeVisibleLogicalRangeChange(tradeZoneRedrawFn); } catch(e) {}
+        tradeZoneRedrawFn = null;
+    }
 }
 
 function showEquityCurve() {
@@ -1316,6 +1892,285 @@ function showEquityCurve() {
         equityChart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
     }).observe(container);
 }
+
+// ═════════════════════════════════════════════════════════════════════
+// DRAWING TOOLS (Horizontal & Vertical Lines)
+// ═════════════════════════════════════════════════════════════════════
+let drawingMode = null; // 'hline', 'vline', or null
+let userDrawings = []; // { type, priceLine? }
+let userVLines = [];   // vertical line divs
+
+function toggleDrawingMode(mode) {
+    if (drawingMode === mode) {
+        drawingMode = null;
+    } else {
+        drawingMode = mode;
+    }
+    document.getElementById('btnHLine').classList.toggle('active', drawingMode === 'hline');
+    document.getElementById('btnVLine').classList.toggle('active', drawingMode === 'vline');
+
+    // Change cursor
+    const chartEl = document.getElementById('chart');
+    chartEl.style.cursor = drawingMode ? 'crosshair' : '';
+}
+
+// Listen for clicks on chart to place lines
+if (document.getElementById('chart')) {
+    document.getElementById('chart').addEventListener('click', (e) => {
+        if (!drawingMode || !chart || !candleSeries) return;
+
+        const rect = e.target.closest('#chart').getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        if (drawingMode === 'hline') {
+            // Get price at y coordinate
+            const price = candleSeries.coordinateToPrice(y);
+            if (price === null) return;
+
+            const line = candleSeries.createPriceLine({
+                price: price,
+                color: '#ffd54f',
+                lineWidth: 1,
+                lineStyle: 0,
+                axisLabelVisible: true,
+                title: `${price.toFixed(2)}`,
+            });
+            userDrawings.push({ type: 'hline', line: line });
+        }
+
+        if (drawingMode === 'vline') {
+            // Get time at x coordinate
+            const time = chart.timeScale().coordinateToTime(x);
+            if (time === null) return;
+
+            // Draw vertical line as HTML overlay
+            drawVerticalLine(time);
+        }
+
+        // Exit drawing mode after placing
+        toggleDrawingMode(null);
+    });
+}
+
+function drawVerticalLine(time) {
+    const chartEl = document.getElementById('chart');
+    const timeCoord = chart.timeScale().timeToCoordinate(time);
+    if (timeCoord === null) return;
+
+    const vline = document.createElement('div');
+    vline.className = 'user-vline';
+    vline.dataset.time = time;
+    vline.style.cssText = `
+        position: absolute; left: ${timeCoord}px; top: 0;
+        width: 1px; height: 100%;
+        background: rgba(255, 213, 79, 0.6);
+        border-left: 1px dashed #ffd54f;
+        pointer-events: none; z-index: 3;
+    `;
+    chartEl.appendChild(vline);
+    userVLines.push({ time: time, el: vline });
+
+    // Update on scroll
+    const updateVLine = () => {
+        const newX = chart.timeScale().timeToCoordinate(time);
+        if (newX !== null) {
+            vline.style.left = newX + 'px';
+            vline.style.display = '';
+        } else {
+            vline.style.display = 'none';
+        }
+    };
+    chart.timeScale().subscribeVisibleLogicalRangeChange(updateVLine);
+    vline._unsubscribe = () => {
+        try { chart.timeScale().unsubscribeVisibleLogicalRangeChange(updateVLine); } catch(e) {}
+    };
+}
+
+function clearAllDrawings() {
+    // Remove horizontal lines
+    userDrawings.forEach(d => {
+        try { candleSeries.removePriceLine(d.line); } catch(e) {}
+    });
+    userDrawings = [];
+
+    // Remove vertical lines
+    userVLines.forEach(v => {
+        if (v.el._unsubscribe) v.el._unsubscribe();
+        v.el.remove();
+    });
+    userVLines = [];
+}
+
+// Add H/V keyboard shortcuts for drawing
+document.addEventListener('keydown', (e) => {
+    if (!chart) return;
+    if (e.key === 'h' || e.key === 'H') toggleDrawingMode('hline');
+    if (e.key === 'v' || e.key === 'V') toggleDrawingMode('vline');
+    if (e.key === 'Delete') clearAllDrawings();
+});
+
+// ═════════════════════════════════════════════════════════════════════
+// TECHNICAL INDICATORS
+// ═════════════════════════════════════════════════════════════════════
+function calcEMA(candles, period) {
+    const k = 2 / (period + 1);
+    const result = [];
+    let ema = candles[0].close;
+    for (let i = 0; i < candles.length; i++) {
+        ema = candles[i].close * k + ema * (1 - k);
+        if (i >= period - 1) result.push({ time: candles[i].time, value: ema });
+    }
+    return result;
+}
+
+function calcSMA(candles, period) {
+    const result = [];
+    for (let i = period - 1; i < candles.length; i++) {
+        let sum = 0;
+        for (let j = i - period + 1; j <= i; j++) sum += candles[j].close;
+        result.push({ time: candles[i].time, value: sum / period });
+    }
+    return result;
+}
+
+function calcVWAP(candles) {
+    const result = [];
+    let cumVP = 0, cumVol = 0;
+    let lastDay = null;
+    for (const c of candles) {
+        const day = new Date(c.time * 1000).toDateString();
+        if (day !== lastDay) {
+            cumVP = 0; cumVol = 0; lastDay = day;
+        }
+        const tp = (c.high + c.low + c.close) / 3;
+        cumVP += tp * c.volume;
+        cumVol += c.volume;
+        if (cumVol > 0) result.push({ time: c.time, value: cumVP / cumVol });
+    }
+    return result;
+}
+
+function calcRSI(candles, period = 14) {
+    const result = [];
+    if (candles.length < period + 1) return result;
+
+    let avgGain = 0, avgLoss = 0;
+    for (let i = 1; i <= period; i++) {
+        const change = candles[i].close - candles[i - 1].close;
+        if (change > 0) avgGain += change;
+        else avgLoss -= change;
+    }
+    avgGain /= period;
+    avgLoss /= period;
+
+    let rs = avgLoss > 0 ? avgGain / avgLoss : 100;
+    result.push({ time: candles[period].time, value: 100 - 100 / (1 + rs) });
+
+    for (let i = period + 1; i < candles.length; i++) {
+        const change = candles[i].close - candles[i - 1].close;
+        const gain = change > 0 ? change : 0;
+        const loss = change < 0 ? -change : 0;
+        avgGain = (avgGain * (period - 1) + gain) / period;
+        avgLoss = (avgLoss * (period - 1) + loss) / period;
+        rs = avgLoss > 0 ? avgGain / avgLoss : 100;
+        result.push({ time: candles[i].time, value: 100 - 100 / (1 + rs) });
+    }
+    return result;
+}
+
+function updateIndicators(candles) {
+    if (!candles || !candles.length || !chart) return;
+
+    // EMA 9
+    indSeries.ema9.setData(indEnabled.ema9 ? calcEMA(candles, 9) : []);
+    // EMA 21
+    indSeries.ema21.setData(indEnabled.ema21 ? calcEMA(candles, 21) : []);
+    // SMA 50
+    indSeries.sma50.setData(indEnabled.sma50 ? calcSMA(candles, 50) : []);
+    // SMA 200
+    indSeries.sma200.setData(indEnabled.sma200 ? calcSMA(candles, 200) : []);
+    // VWAP
+    indSeries.vwap.setData(indEnabled.vwap ? calcVWAP(candles) : []);
+
+    // RSI Panel
+    if (indEnabled.rsi) {
+        createRSIPanel(candles);
+    } else {
+        document.getElementById('rsiWrapper').classList.remove('visible');
+        if (rsiChart) { rsiChart.remove(); rsiChart = null; }
+    }
+}
+
+function toggleIndicator(name) {
+    indEnabled[name] = !indEnabled[name];
+
+    // Update button state
+    const btnMap = { ema9: 'indEma9', ema21: 'indEma21', sma50: 'indSma50', sma200: 'indSma200', vwap: 'indVwap', rsi: 'indRsi' };
+    const btn = document.getElementById(btnMap[name]);
+    if (btn) btn.classList.toggle('active', indEnabled[name]);
+
+    // Re-render
+    const candles = allCandles[currentTf];
+    if (candles && candles.length) updateIndicators(candles);
+}
+
+function createRSIPanel(candles) {
+    const wrapper = document.getElementById('rsiWrapper');
+    wrapper.classList.add('visible');
+    const container = document.getElementById('rsiChart');
+
+    if (rsiChart) { rsiChart.remove(); rsiChart = null; }
+
+    rsiChart = LightweightCharts.createChart(container, {
+        width: container.clientWidth,
+        height: container.clientHeight,
+        layout: {
+            background: { type: 'solid', color: '#0c0c12' },
+            textColor: '#65657e',
+            fontFamily: "'Inter', sans-serif",
+            fontSize: 10,
+        },
+        grid: {
+            vertLines: { color: 'rgba(42, 42, 64, 0.3)' },
+            horzLines: { color: 'rgba(42, 42, 64, 0.3)' },
+        },
+        rightPriceScale: { borderColor: '#2a2a40', scaleMargins: { top: 0.05, bottom: 0.05 } },
+        timeScale: { borderColor: '#2a2a40', timeVisible: true, visible: true },
+        crosshair: {
+            vertLine: { color: 'rgba(41, 98, 255, 0.2)', width: 1, style: 2 },
+            horzLine: { color: 'rgba(41, 98, 255, 0.2)', width: 1, style: 2 },
+        },
+    });
+
+    rsiSeries = rsiChart.addLineSeries({
+        color: '#b388ff', lineWidth: 1.5,
+        priceLineVisible: false, lastValueVisible: true,
+    });
+
+    const rsiData = calcRSI(candles, 14);
+    rsiSeries.setData(rsiData);
+
+    // Overbought / Oversold lines
+    rsiSeries.createPriceLine({ price: 70, color: 'rgba(255, 82, 82, 0.4)', lineWidth: 1, lineStyle: 2, title: '70' });
+    rsiSeries.createPriceLine({ price: 30, color: 'rgba(0, 230, 118, 0.4)', lineWidth: 1, lineStyle: 2, title: '30' });
+    rsiSeries.createPriceLine({ price: 50, color: 'rgba(100, 100, 130, 0.3)', lineWidth: 1, lineStyle: 2, title: '' });
+
+    rsiChart.timeScale().fitContent();
+
+    // Sync time scales
+    chart.timeScale().subscribeVisibleTimeRangeChange((range) => {
+        if (rsiChart) {
+            try { rsiChart.timeScale().setVisibleRange(range); } catch(e) {}
+        }
+    });
+
+    new ResizeObserver(() => {
+        if (rsiChart) rsiChart.applyOptions({ width: container.clientWidth, height: container.clientHeight });
+    }).observe(container);
+}
 </script>
 </body>
 </html>
+
+
