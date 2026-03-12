@@ -1663,13 +1663,15 @@ function processFile(file) {
 
     // ── Fuzzy header name aliases ──
     const COL_ALIASES = {
-        time: ['time','date','datetime','timestamp','ts','date/time','trade date','trade_date','date_time','t','period','bar','candle_time','interval'],
+        date: ['date','trade date','trade_date'],
+        time: ['time','datetime','timestamp','ts','date/time','date_time','t','period','bar','candle_time','interval'],
         open: ['open','o','openprice','open_price','open price','first','opening','op'],
         high: ['high','h','highprice','high_price','high price','hi','max','highest','hp'],
         low: ['low','l','lowprice','low_price','low price','lo','min','lowest','lp'],
         close: ['close','c','closeprice','close_price','close price','last','closing','settle','settlement','adj close','adj_close','adjclose','cp'],
         volume: ['volume','vol','v','qty','quantity','size','total_volume','totalvolume','ticks','contracts','turnover','amount'],
     };
+    let ohlcvSeparateDateTime = false; // true when CSV has separate Date + Time columns
 
     function fuzzyMatchCol(headerName) {
         const h = headerName.trim().toLowerCase().replace(/[^a-z0-9_/ ]/g, '');
@@ -1783,12 +1785,21 @@ function processFile(file) {
                 const role = fuzzyMatchCol(col);
                 if (role && ohlcvColMap[role] === undefined) ohlcvColMap[role] = i;
             });
-            if (ohlcvColMap.time === undefined) ohlcvColMap.time = 0;
-            if (ohlcvColMap.open === undefined) ohlcvColMap.open = 1;
-            if (ohlcvColMap.high === undefined) ohlcvColMap.high = 2;
-            if (ohlcvColMap.low === undefined) ohlcvColMap.low = 3;
-            if (ohlcvColMap.close === undefined) ohlcvColMap.close = 4;
-            if (ohlcvColMap.volume === undefined) ohlcvColMap.volume = 5;
+            // Detect separate Date + Time columns (e.g. NinjaTrader 1-sec OHLCV exports)
+            ohlcvSeparateDateTime = (ohlcvColMap.date !== undefined && ohlcvColMap.time !== undefined);
+            // If only 'date' found but not 'time', treat 'date' as the combined datetime
+            if (ohlcvColMap.date !== undefined && ohlcvColMap.time === undefined) {
+                ohlcvColMap.time = ohlcvColMap.date;
+            }
+            // If neither 'date' nor 'time' found, default to column 0
+            if (ohlcvColMap.time === undefined && ohlcvColMap.date === undefined) ohlcvColMap.time = 0;
+            // Shift defaults when separate date+time occupy cols 0+1
+            const ohlcvDataStart = ohlcvSeparateDateTime ? 2 : 1;
+            if (ohlcvColMap.open === undefined) ohlcvColMap.open = ohlcvDataStart;
+            if (ohlcvColMap.high === undefined) ohlcvColMap.high = ohlcvDataStart + 1;
+            if (ohlcvColMap.low === undefined) ohlcvColMap.low = ohlcvDataStart + 2;
+            if (ohlcvColMap.close === undefined) ohlcvColMap.close = ohlcvDataStart + 3;
+            if (ohlcvColMap.volume === undefined) ohlcvColMap.volume = ohlcvDataStart + 4;
         }
 
         // Collect preview rows
@@ -1867,12 +1878,17 @@ function processFile(file) {
                             const role = fuzzyMatchCol(col);
                             if (role && ohlcvColMap[role] === undefined) ohlcvColMap[role] = i;
                         });
-                        if (ohlcvColMap.time === undefined) ohlcvColMap.time = 0;
-                        if (ohlcvColMap.open === undefined) ohlcvColMap.open = 1;
-                        if (ohlcvColMap.high === undefined) ohlcvColMap.high = 2;
-                        if (ohlcvColMap.low === undefined) ohlcvColMap.low = 3;
-                        if (ohlcvColMap.close === undefined) ohlcvColMap.close = 4;
-                        if (ohlcvColMap.volume === undefined) ohlcvColMap.volume = 5;
+                        ohlcvSeparateDateTime = (ohlcvColMap.date !== undefined && ohlcvColMap.time !== undefined);
+                        if (ohlcvColMap.date !== undefined && ohlcvColMap.time === undefined) {
+                            ohlcvColMap.time = ohlcvColMap.date;
+                        }
+                        if (ohlcvColMap.time === undefined && ohlcvColMap.date === undefined) ohlcvColMap.time = 0;
+                        const ohlcvDataStart2 = ohlcvSeparateDateTime ? 2 : 1;
+                        if (ohlcvColMap.open === undefined) ohlcvColMap.open = ohlcvDataStart2;
+                        if (ohlcvColMap.high === undefined) ohlcvColMap.high = ohlcvDataStart2 + 1;
+                        if (ohlcvColMap.low === undefined) ohlcvColMap.low = ohlcvDataStart2 + 2;
+                        if (ohlcvColMap.close === undefined) ohlcvColMap.close = ohlcvDataStart2 + 3;
+                        if (ohlcvColMap.volume === undefined) ohlcvColMap.volume = ohlcvDataStart2 + 4;
                     }
                     continue;
                 }
@@ -1923,7 +1939,10 @@ function processFile(file) {
                 } else {
                     // ── OHLCV format (TradingView, generic) ──
                     lastTicks++;
-                    const rawTime = cols[ohlcvColMap.time].trim();
+                    // Combine separate Date + Time columns if detected
+                    const rawTime = ohlcvSeparateDateTime
+                        ? (cols[ohlcvColMap.date]?.trim() + ' ' + cols[ohlcvColMap.time]?.trim())
+                        : cols[ohlcvColMap.time].trim();
                     const open = parseFloat(cols[ohlcvColMap.open]);
                     const high = parseFloat(cols[ohlcvColMap.high]);
                     const low = parseFloat(cols[ohlcvColMap.low]);
@@ -2021,7 +2040,9 @@ function processFile(file) {
                 }
             } else if (csvFormat === 'ohlcv' && cols.length >= 3) {
                 // OHLCV leftover
-                const rawTime = cols[ohlcvColMap.time]?.trim();
+                const rawTime = ohlcvSeparateDateTime
+                    ? (cols[ohlcvColMap.date]?.trim() + ' ' + cols[ohlcvColMap.time]?.trim())
+                    : cols[ohlcvColMap.time]?.trim();
                 const open = parseFloat(cols[ohlcvColMap.open]);
                 const high = parseFloat(cols[ohlcvColMap.high]);
                 const low = parseFloat(cols[ohlcvColMap.low]);
