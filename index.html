@@ -1647,9 +1647,8 @@ function processFile(file) {
     const progressStats = document.getElementById('progressStats');
     const cancelBtn = document.getElementById('cancelParseBtn');
 
-    // Initialize candle buckets for all timeframes
+    // Initialize candle buckets (actual TFs set after file-size check below)
     const candleBuckets = {};
-    TIMEFRAMES.forEach(tf => { candleBuckets[tf.key] = {}; });
 
     let lastTicks = 0;
     let totalLines = 0;
@@ -1736,8 +1735,18 @@ function processFile(file) {
         return isNaN(fallback.getTime()) ? null : fallback;
     }
 
-    const CHUNK_SIZE = 8 * 1024 * 1024; // 8MB chunks
+    // Dynamic chunk size — smaller for huge files to reduce peak memory
+    const CHUNK_SIZE = fileSize > 1024*1024*1024 ? 2*1024*1024
+                     : fileSize > 500*1024*1024  ? 4*1024*1024
+                     : 8*1024*1024;
     let offset = 0;
+    let chunkRetries = 0; // retry counter for read errors
+    const MAX_RETRIES = 3;
+    // Large file mode: skip 1s/5s timeframes to prevent OOM on 10M+ row files
+    const largeFileMode = fileSize > 100 * 1024 * 1024; // >100MB
+    const activeTfs = largeFileMode
+        ? TIMEFRAMES.filter(tf => tf.seconds >= 30)
+        : TIMEFRAMES;
     let previewRows = []; // first 5 data rows for preview
     let rawHeaderCols = []; // original header names
 
@@ -1826,6 +1835,8 @@ function processFile(file) {
             totalLines = 0;
             lastTicks = 0;
             bytesRead = 0;
+            // Initialize buckets for the active timeframes only
+            activeTfs.forEach(tf => { candleBuckets[tf.key] = {}; });
             readNextChunk();
         });
     };
@@ -1845,10 +1856,20 @@ function processFile(file) {
         const reader = new FileReader();
 
         reader.onerror = function() {
-            progressLabel.textContent = 'Read error!';
-            progressFill.style.background = 'linear-gradient(90deg, #ef5350, #ff5252)';
-            cancelBtn.style.display = 'none';
-            alert('File read error: ' + (reader.error?.message || 'Unknown error'));
+            chunkRetries++;
+            if (chunkRetries <= MAX_RETRIES) {
+                // Retry with exponential backoff
+                const delay = Math.pow(2, chunkRetries) * 200;
+                progressLabel.textContent = `Read error — retrying (${chunkRetries}/${MAX_RETRIES})...`;
+                progressFill.style.background = 'linear-gradient(90deg, #ff9800, #ffab00)';
+                setTimeout(readNextChunk, delay);
+                return;
+            }
+            // All retries exhausted — finish with whatever data we have
+            console.warn('FileReader failed after retries, finishing with partial data.', reader.error);
+            progressLabel.textContent = `Read error at ${Math.round(offset/fileSize*100)}% — using partial data`;
+            progressFill.style.background = 'linear-gradient(90deg, #ff9800, #ffd54f)';
+            setTimeout(() => finishParsing(), 500);
         };
 
         reader.onload = function(e) {
@@ -1913,7 +1934,7 @@ function processFile(file) {
                     const [y, mo, d] = datePart.split('-').map(Number);
                     const [h, mi, s] = timePart.split(':').map(Number);
 
-                    for (const tf of TIMEFRAMES) {
+                    for (const tf of activeTfs) {
                         const totalSec = h * 3600 + mi * 60 + s;
                         const flooredSec = Math.floor(totalSec / tf.seconds) * tf.seconds;
                         const fh = Math.floor(flooredSec / 3600);
@@ -1959,7 +1980,7 @@ function processFile(file) {
                     const h = dt.getHours(), mi = dt.getMinutes(), s = dt.getSeconds();
 
                     // For OHLCV, put raw bar into all applicable timeframes
-                    for (const tf of TIMEFRAMES) {
+                    for (const tf of activeTfs) {
                         const totalSec = h * 3600 + mi * 60 + s;
                         const flooredSec = Math.floor(totalSec / tf.seconds) * tf.seconds;
                         const fh = Math.floor(flooredSec / 3600);
@@ -1993,6 +2014,7 @@ function processFile(file) {
             progressStats.textContent = `${totalLines.toLocaleString()} rows | ${lastTicks.toLocaleString()} trades`;
 
             offset += CHUNK_SIZE;
+            chunkRetries = 0; // reset retries on successful read
 
             // Yield to UI thread
             setTimeout(readNextChunk, 0);
@@ -2016,7 +2038,7 @@ function processFile(file) {
                     const [y, mo, d] = datePart.split('-').map(Number);
                     const [h, mi, s] = timePart.split(':').map(Number);
 
-                    for (const tf of TIMEFRAMES) {
+                    for (const tf of activeTfs) {
                         const totalSec = h * 3600 + mi * 60 + s;
                         const flooredSec = Math.floor(totalSec / tf.seconds) * tf.seconds;
                         const fh = Math.floor(flooredSec / 3600);
@@ -2053,7 +2075,7 @@ function processFile(file) {
                     if (dt && !isNaN(dt.getTime())) {
                         const y = dt.getFullYear(), mo = dt.getMonth(), d = dt.getDate();
                         const h = dt.getHours(), mi = dt.getMinutes(), s = dt.getSeconds();
-                        for (const tf of TIMEFRAMES) {
+                        for (const tf of activeTfs) {
                             const totalSec = h * 3600 + mi * 60 + s;
                             const flooredSec = Math.floor(totalSec / tf.seconds) * tf.seconds;
                             const fh = Math.floor(flooredSec / 3600);
@@ -2080,8 +2102,8 @@ function processFile(file) {
 
         // Convert bucket objects to sorted arrays
         totalLastTicks = lastTicks;
-        TIMEFRAMES.forEach(tf => {
-            allCandles[tf.key] = Object.values(candleBuckets[tf.key]).sort((a, b) => a.time - b.time);
+        activeTfs.forEach(tf => {
+            allCandles[tf.key] = Object.values(candleBuckets[tf.key] || {}).sort((a, b) => a.time - b.time);
         });
 
         // Check if we actually parsed any data
@@ -2121,10 +2143,15 @@ function showChart() {
     document.getElementById('watermark').textContent = symbol;
     document.getElementById('tickCountLabel').textContent = totalLastTicks.toLocaleString() + ' trades';
 
-    // Build TF buttons
+    // Build TF buttons (only for timeframes that have data)
     const tfGroup = document.getElementById('tfGroup');
     tfGroup.innerHTML = '';
-    TIMEFRAMES.forEach(tf => {
+    const availableTfs = TIMEFRAMES.filter(tf => allCandles[tf.key] && allCandles[tf.key].length > 0);
+    // Fall back to first available TF if current one has no data
+    if (!allCandles[currentTf] || !allCandles[currentTf].length) {
+        currentTf = availableTfs.length ? availableTfs[0].key : '1m';
+    }
+    availableTfs.forEach(tf => {
         const btn = document.createElement('button');
         btn.className = 'tf-btn' + (tf.key === currentTf ? ' active' : '');
         btn.dataset.tf = tf.key;
