@@ -1341,6 +1341,18 @@
         <button class="ind-btn" id="indSma200" onclick="toggleIndicator('sma200')" title="SMA 200">
             <span class="ind-dot" style="background:#e040fb"></span>SMA 200
         </button>
+        <button class="ind-btn" id="indEma20" onclick="toggleIndicator('ema20')" title="EMA 20">
+            <span class="ind-dot" style="background:#00e5ff"></span>EMA 20
+        </button>
+        <button class="ind-btn" id="indEma50" onclick="toggleIndicator('ema50')" title="EMA 50">
+            <span class="ind-dot" style="background:#ff6d00"></span>EMA 50
+        </button>
+        <button class="ind-btn" id="indEma99" onclick="toggleIndicator('ema99')" title="EMA 99">
+            <span class="ind-dot" style="background:#f06292"></span>EMA 99
+        </button>
+        <button class="ind-btn" id="indEma150" onclick="toggleIndicator('ema150')" title="EMA 150">
+            <span class="ind-dot" style="background:#ce93d8"></span>EMA 150
+        </button>
         <button class="ind-btn active" id="indVwap" onclick="toggleIndicator('vwap')" title="VWAP">
             <span class="ind-dot" style="background:#fff"></span>VWAP
         </button>
@@ -1348,6 +1360,11 @@
             <span class="ind-dot" style="background:#b388ff"></span>RSI
         </button>
         <div class="toolbar-sep"></div>
+        <div style="display:flex;align-items:center;gap:3px">
+            <input type="number" id="customEmaInput" placeholder="EMA" min="2" max="500" style="width:48px;padding:3px 5px;background:var(--bg-tertiary);border:1px solid var(--border);color:var(--text-primary);border-radius:4px;font-size:10px;font-family:inherit;text-align:center" onkeydown="if(event.key==='Enter')addCustomEma()">
+            <button onclick="addCustomEma()" style="padding:3px 7px;font-size:11px;font-weight:700;color:var(--accent);background:var(--bg-tertiary);border:1px solid var(--border);border-radius:4px;cursor:pointer;font-family:inherit" title="Add custom EMA">+</button>
+        </div>
+        <div id="customEmaButtons" style="display:flex;gap:2px;flex-wrap:nowrap"></div>
         <button class="trades-btn" id="btnTrades" onclick="document.getElementById('tradesInput').click()">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
             Load Trades
@@ -1538,8 +1555,11 @@ function applyTimezoneFormatters() {
 // Indicator line series
 let indSeries = {};
 let indEnabled = {
-    ema9: true, ema21: true, sma50: false, sma200: false, vwap: true, rsi: true
+    ema9: true, ema21: true, ema20: false, ema50: false, ema99: false, ema150: false, sma50: false, sma200: false, vwap: true, rsi: true
 };
+
+// Custom EMA storage: [{ period, color, series, enabled }]
+let customEmas = [];
 
 const TIMEFRAMES = [
     { key: '1s',  label: '1s',  seconds: 1 },
@@ -2224,6 +2244,10 @@ function createChart() {
     indSeries.ema21 = chart.addLineSeries({ color: '#26c6da', lineWidth: 1, title: 'EMA 21', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
     indSeries.sma50 = chart.addLineSeries({ color: '#ff9800', lineWidth: 1, title: 'SMA 50', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
     indSeries.sma200 = chart.addLineSeries({ color: '#e040fb', lineWidth: 1, title: 'SMA 200', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    indSeries.ema20 = chart.addLineSeries({ color: '#00e5ff', lineWidth: 1, title: 'EMA 20', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    indSeries.ema50 = chart.addLineSeries({ color: '#ff6d00', lineWidth: 1, title: 'EMA 50', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    indSeries.ema99 = chart.addLineSeries({ color: '#f06292', lineWidth: 1, title: 'EMA 99', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
+    indSeries.ema150 = chart.addLineSeries({ color: '#ce93d8', lineWidth: 1, title: 'EMA 150', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
     indSeries.vwap = chart.addLineSeries({ color: '#ffffff', lineWidth: 1, lineStyle: 2, title: 'VWAP', priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false });
 
     // Double-click chart → reset auto-scale and fit content (standard TradingView behavior)
@@ -3791,8 +3815,19 @@ function updateIndicators(candles) {
     indSeries.sma50.setData(indEnabled.sma50 ? calcSMA(candles, 50) : []);
     // SMA 200
     indSeries.sma200.setData(indEnabled.sma200 ? calcSMA(candles, 200) : []);
+    // EMA 20
+    indSeries.ema20.setData(indEnabled.ema20 ? calcEMA(candles, 20) : []);
+    // EMA 50
+    indSeries.ema50.setData(indEnabled.ema50 ? calcEMA(candles, 50) : []);
+    // EMA 99
+    indSeries.ema99.setData(indEnabled.ema99 ? calcEMA(candles, 99) : []);
+    // EMA 150
+    indSeries.ema150.setData(indEnabled.ema150 ? calcEMA(candles, 150) : []);
     // VWAP
     indSeries.vwap.setData(indEnabled.vwap ? calcVWAP(candles) : []);
+
+    // Custom EMAs
+    updateCustomEmas(candles);
 
     // RSI Panel
     if (indEnabled.rsi) {
@@ -3807,13 +3842,81 @@ function toggleIndicator(name) {
     indEnabled[name] = !indEnabled[name];
 
     // Update button state
-    const btnMap = { ema9: 'indEma9', ema21: 'indEma21', sma50: 'indSma50', sma200: 'indSma200', vwap: 'indVwap', rsi: 'indRsi' };
+    const btnMap = { ema9: 'indEma9', ema21: 'indEma21', ema20: 'indEma20', ema50: 'indEma50', ema99: 'indEma99', ema150: 'indEma150', sma50: 'indSma50', sma200: 'indSma200', vwap: 'indVwap', rsi: 'indRsi' };
     const btn = document.getElementById(btnMap[name]);
     if (btn) btn.classList.toggle('active', indEnabled[name]);
 
     // Re-render
     const candles = allCandles[currentTf];
     if (candles && candles.length) updateIndicators(candles);
+}
+
+// ═════════════════════════════════════════════════════════════════════
+// CUSTOM EMA
+// ═════════════════════════════════════════════════════════════════════
+const CUSTOM_EMA_COLORS = ['#00bfa5','#ff4081','#7c4dff','#64dd17','#ffd600','#00b0ff','#ff3d00','#d500f9','#1de9b6','#ff9100'];
+let customEmaColorIdx = 0;
+
+function addCustomEma() {
+    const input = document.getElementById('customEmaInput');
+    const period = parseInt(input.value);
+    if (!period || period < 2 || period > 500) { input.style.borderColor = '#ff5252'; setTimeout(() => input.style.borderColor = '', 800); return; }
+    // Check if already exists
+    if (customEmas.find(e => e.period === period)) { input.value = ''; return; }
+
+    const color = CUSTOM_EMA_COLORS[customEmaColorIdx % CUSTOM_EMA_COLORS.length];
+    customEmaColorIdx++;
+
+    const series = chart ? chart.addLineSeries({ color, lineWidth: 1, title: `EMA ${period}`, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }) : null;
+    const ema = { period, color, series, enabled: true };
+    customEmas.push(ema);
+
+    // Set data immediately
+    const candles = allCandles[currentTf];
+    if (series && candles && candles.length) {
+        series.setData(calcEMA(candles, period));
+    }
+
+    renderCustomEmaButtons();
+    input.value = '';
+}
+
+function toggleCustomEma(period) {
+    const ema = customEmas.find(e => e.period === period);
+    if (!ema) return;
+    ema.enabled = !ema.enabled;
+    const candles = allCandles[currentTf];
+    if (ema.series) ema.series.setData(ema.enabled && candles ? calcEMA(candles, period) : []);
+    renderCustomEmaButtons();
+}
+
+function removeCustomEma(period) {
+    const idx = customEmas.findIndex(e => e.period === period);
+    if (idx === -1) return;
+    const ema = customEmas[idx];
+    if (ema.series && chart) chart.removeSeries(ema.series);
+    customEmas.splice(idx, 1);
+    renderCustomEmaButtons();
+}
+
+function renderCustomEmaButtons() {
+    const container = document.getElementById('customEmaButtons');
+    if (!container) return;
+    container.innerHTML = '';
+    customEmas.forEach(ema => {
+        const btn = document.createElement('button');
+        btn.className = 'ind-btn' + (ema.enabled ? ' active' : '');
+        btn.style.paddingRight = '2px';
+        btn.innerHTML = `<span class="ind-dot" style="background:${ema.color}"></span>E${ema.period} <span onclick="event.stopPropagation();removeCustomEma(${ema.period})" style="margin-left:2px;cursor:pointer;color:var(--text-muted);font-size:9px" title="Remove">✕</span>`;
+        btn.onclick = () => toggleCustomEma(ema.period);
+        container.appendChild(btn);
+    });
+}
+
+function updateCustomEmas(candles) {
+    customEmas.forEach(ema => {
+        if (ema.series) ema.series.setData(ema.enabled && candles ? calcEMA(candles, ema.period) : []);
+    });
 }
 
 function createRSIPanel(candles) {
